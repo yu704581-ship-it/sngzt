@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.2A</title>
+<title>工作台 v2.2B</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -316,7 +316,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.2A</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.2B</span></div>
     <div class="sb-stats">
       <div class="sb-stat"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -572,6 +572,13 @@ function setSyncStatus(state,msg){
 
 /* push one json file */
 async function ghPushFile(name,data){
+  /* 如果 SHA 缓存为空（页面刷新后），先 GET 拿最新 SHA，避免 409 冲突 */
+  if(!_sha[name]){
+    try{
+      const chk=await fetch(ghFileUrl(GH_FILES[name]),{headers:ghHeaders()});
+      if(chk.ok){const j=await chk.json();_sha[name]=j.sha;}
+    }catch(e){}
+  }
   const content=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
   const body={message:'sync '+name+' '+new Date().toISOString(),content};
   if(_sha[name])body.sha=_sha[name];
