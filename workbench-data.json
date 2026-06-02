@@ -1,0 +1,118 @@
+{
+  "notes": [
+    {
+      "id": 1,
+      "time": "14:32",
+      "date": "今天",
+      "text": "重构认证模块，计划拆分三层：TokenService 签发 JWT，SessionStore 管 Redis 会话，AuthMiddleware 拦截请求。迁移期间双写，两周后切断旧链路。",
+      "tags": [
+        "auth",
+        "arch"
+      ],
+      "images": []
+    },
+    {
+      "id": 2,
+      "time": "11:05",
+      "date": "今天",
+      "text": "adapter 模式包旧接口，迁移期间无需停服，可逐步切换。出问题也方便回滚。（双击这段文字可以编辑）",
+      "tags": [
+        "arch"
+      ],
+      "images": []
+    },
+    {
+      "id": 3,
+      "time": "16:44",
+      "date": "昨天",
+      "text": "Redis 会话策略：滑动窗口比固定过期更适合长时间在线用户，每次请求后重置计时。",
+      "tags": [
+        "auth",
+        "db"
+      ],
+      "images": []
+    }
+  ],
+  "todos": [
+    {
+      "id": 1,
+      "done": false,
+      "text": "和张三开会，确认方案方向",
+      "date": "今天",
+      "tags": [
+        "mgmt"
+      ],
+      "pinned": false,
+      "nextId": 2,
+      "locked": false
+    },
+    {
+      "id": 2,
+      "done": false,
+      "text": "根据会议共识，起草方案初稿",
+      "date": "后天",
+      "tags": [
+        "design"
+      ],
+      "pinned": false,
+      "nextId": null,
+      "locked": true
+    },
+    {
+      "id": 3,
+      "done": false,
+      "text": "评审 API 设计文档（双击可编辑）",
+      "date": "今天",
+      "tags": [
+        "design"
+      ],
+      "pinned": false,
+      "nextId": null,
+      "locked": false
+    },
+    {
+      "id": 4,
+      "done": true,
+      "text": "整理接口文档",
+      "date": "已完成",
+      "tags": [
+        "design"
+      ],
+      "pinned": false,
+      "nextId": null,
+      "locked": false
+    }
+  ],
+  "experiences": [
+    {
+      "id": 1,
+      "type": "lesson",
+      "title": "JWT 续签要加滑动窗口",
+      "body": "固定过期导致用户频繁被踢出，改用活跃续签后投诉降 80%。",
+      "tags": [
+        "auth"
+      ],
+      "date": "3天前"
+    },
+    {
+      "id": 2,
+      "type": "pitfall",
+      "title": "数据库迁移脚本必须幂等",
+      "body": "重复执行导致数据双写，加 IF NOT EXISTS 保护。",
+      "tags": [
+        "db"
+      ],
+      "date": "1周前"
+    },
+    {
+      "id": 3,
+      "type": "pattern",
+      "title": "Adapter 模式做新旧兼容",
+      "body": "包旧接口，迁移期间无需停服，可逐步切换，出问题快速回滚。",
+      "tags": [
+        "arch"
+      ],
+      "date": "2周前"
+    }
+  ]
+}
