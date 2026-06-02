@@ -33,76 +33,7 @@
       "images": []
     }
   ],
-  "todos": [
-    {
-      "id": "1780372746575vpo5",
-      "done": false,
-      "text": "111",
-      "date": "今天",
-      "tags": [],
-      "pinned": false,
-      "nextId": null,
-      "locked": false
-    },
-    {
-      "id": "1780372719242tith",
-      "done": false,
-      "text": "11",
-      "date": "今天",
-      "tags": [],
-      "pinned": false,
-      "nextId": null,
-      "locked": false
-    },
-    {
-      "id": 1,
-      "done": false,
-      "text": "和张三开会，确认方案方向",
-      "date": "今天",
-      "tags": [
-        "mgmt"
-      ],
-      "pinned": false,
-      "nextId": 2,
-      "locked": false
-    },
-    {
-      "id": 2,
-      "done": false,
-      "text": "根据会议共识，起草方案初稿",
-      "date": "后天",
-      "tags": [
-        "design"
-      ],
-      "pinned": false,
-      "nextId": null,
-      "locked": true
-    },
-    {
-      "id": 3,
-      "done": false,
-      "text": "评审 API 设计文档（双击可编辑）",
-      "date": "今天",
-      "tags": [
-        "design"
-      ],
-      "pinned": false,
-      "nextId": null,
-      "locked": false
-    },
-    {
-      "id": 4,
-      "done": false,
-      "text": "整理接口文档",
-      "date": "今天",
-      "tags": [
-        "design"
-      ],
-      "pinned": false,
-      "nextId": null,
-      "locked": false
-    }
-  ],
+  "todos": [],
   "experiences": [
     {
       "id": 1,
