@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.5</title>
+<title>工作台 v2.5A</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -153,8 +153,15 @@ body::before{
 .card-btn:hover{background:rgba(0,0,0,0.05);color:rgba(0,0,0,0.75);}
 .card-btn.to-todo{color:#0369a1;border-color:rgba(14,165,233,0.3);}
 .card-btn.to-todo:hover{background:rgba(14,165,233,0.08);}
-.card-btn.to-exp{color:#047857;border-color:rgba(16,185,129,0.3);}
-.card-btn.to-exp:hover{background:rgba(16,185,129,0.08);}
+/* experience mark styles */
+.card.is-exp{border-color:rgba(245,158,11,0.35);background:rgba(255,253,235,0.7);}
+.exp-mark-btn{font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.06);color:#92400e;cursor:pointer;font-family:inherit;transition:all .12s;}
+.exp-mark-btn:hover{background:rgba(245,158,11,0.12);}
+.exp-mark-btn.marked{background:rgba(245,158,11,0.14);color:#78350f;border-color:rgba(245,158,11,0.45);}
+.exp-marked-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:2px 7px;border-radius:9px;background:rgba(245,158,11,0.1);color:#92400e;border:0.5px solid rgba(245,158,11,0.22);margin-top:5px;}
+.exp-conclusion{font-size:13px;font-weight:500;color:#78350f;margin-bottom:6px;padding:6px 10px;background:rgba(245,158,11,0.08);border-radius:6px;border-left:3px solid rgba(245,158,11,0.5);}
+.exp-conclusion-inp{width:100%;border:none;border-bottom:1.5px solid rgba(245,158,11,0.4);outline:none;font-size:13px;font-weight:500;color:#78350f;background:transparent;font-family:inherit;padding:4px 0 5px;margin-bottom:8px;}
+.exp-conclusion-inp::placeholder{color:rgba(120,53,15,0.35);font-weight:400;}
 .card-body{font-size:13px;color:rgba(0,0,0,0.78);line-height:1.75;word-break:break-word;cursor:default;}
 .card-body.collapsed{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .card-body[contenteditable="true"]{outline:none;cursor:text;overflow-y:auto;max-height:60vh;}
@@ -168,6 +175,10 @@ body::before{
 .card-body h3{font-size:13.5px;font-weight:500;margin:4px 0 3px;color:rgba(0,0,0,0.82);}
 .card-body ul,.card-body ol{margin:4px 0 4px 4px;font-size:13px;padding-left:20px;list-style-position:outside;}
 .card-body ol{list-style-type:decimal;}
+.card-body ul.task-list{list-style:none;padding-left:4px;}
+.card-body ul.task-list li{display:flex;align-items:flex-start;gap:6px;margin:3px 0;}
+.card-body ul.task-list li input[type=checkbox]{margin-top:3px;width:13px;height:13px;cursor:pointer;accent-color:#6366f1;flex-shrink:0;}
+.card-body ul.task-list li.checked{color:rgba(0,0,0,0.3);text-decoration:line-through;}
 /* color picker swatch */
 .color-swatch{width:16px;height:16px;border-radius:3px;border:0.5px solid rgba(0,0,0,0.15);cursor:pointer;display:inline-block;flex-shrink:0;}
 .color-picker-wrap{position:relative;display:inline-flex;align-items:center;}
@@ -178,9 +189,9 @@ body::before{
 .global-note-toolbar{display:none;align-items:center;gap:2px;padding:5px 22px;flex-wrap:wrap;background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:0.5px solid rgba(0,0,0,0.07);flex-shrink:0;}
 .global-note-toolbar.show{display:flex;}
 /* todo edit modal */
-.todo-edit-modal{width:600px;}
+.todo-edit-modal{width:720px;}
 .todo-edit-title{width:100%;border:none;border-bottom:1.5px solid #6366f1;outline:none;font-size:15px;font-weight:500;color:#1a1a2e;background:transparent;font-family:inherit;padding:4px 0 6px;margin-bottom:14px;}
-.todo-edit-remark{min-height:100px;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;font-size:13px;color:#1a1a2e;line-height:1.75;outline:none;word-break:break-word;background:rgba(255,255,255,0.7);}
+.todo-edit-remark{min-height:80px;max-height:260px;overflow-y:auto;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;font-size:13px;color:#1a1a2e;line-height:1.75;outline:none;word-break:break-word;background:rgba(255,255,255,0.7);}
 .todo-edit-remark:empty:before{content:"添加备注…";color:rgba(0,0,0,0.25);pointer-events:none;}
 .todo-edit-remark a{color:#4f46e5;text-decoration:underline;text-underline-offset:2px;}
 .remark-toolbar{display:flex;align-items:center;gap:2px;padding:4px 8px;border:0.5px solid rgba(0,0,0,0.12);border-bottom:none;border-radius:8px 8px 0 0;background:rgba(0,0,0,0.02);flex-wrap:wrap;}
@@ -421,7 +432,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.5</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.5A</span></div>
     <div class="sb-stats">
       <div class="sb-stat"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -443,7 +454,7 @@ body::before{
   <div class="sb-nav">
     <div class="nav-item active" data-mode="todos" onclick="switchMode('todos')"><i class="ti ti-checkbox" aria-hidden="true"></i>待办任务</div>
     <div class="nav-item" data-mode="notes" onclick="switchMode('notes')"><i class="ti ti-notes" aria-hidden="true"></i>全部笔记</div>
-    <div class="nav-item" data-mode="exp" onclick="switchMode('exp')"><i class="ti ti-bulb" aria-hidden="true"></i>经验库</div>
+    <div class="nav-item" data-mode="exp" onclick="switchMode('exp')"><i class="ti ti-star" aria-hidden="true"></i>经验</div>
   </div>
   <div class="sb-div"></div>
   <div class="sb-sec-lbl">标签 <button onclick="openModal('tagmgr')">+ 管理</button></div>
@@ -505,6 +516,7 @@ body::before{
     <div class="nt-sep"></div>
     <button class="nt-btn" onclick="gntExec('insertUnorderedList')" title="无序列表"><i class="ti ti-list" style="font-size:13px" aria-hidden="true"></i></button>
     <button class="nt-btn" onclick="gntExec('insertOrderedList')" title="有序列表"><i class="ti ti-list-numbers" style="font-size:13px" aria-hidden="true"></i></button>
+    <button class="nt-btn" onclick="gntInsertTaskList()" title="待办清单"><i class="ti ti-checkbox" style="font-size:13px" aria-hidden="true"></i></button>
     <button class="nt-btn" onclick="gntInsertBlock('blockquote')" title="引用"><i class="ti ti-blockquote" style="font-size:13px" aria-hidden="true"></i></button>
     <button class="nt-btn" onclick="gntInsertBlock('pre')" title="代码块"><i class="ti ti-code" style="font-size:13px" aria-hidden="true"></i></button>
     <div class="nt-sep"></div>
@@ -582,6 +594,19 @@ body::before{
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeTodoEditModal()">取消</button>
       <button class="btn-primary" onclick="saveTodoEditModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXP CONCLUSION MODAL -->
+<div class="modal-overlay" id="modal-exp-conclusion" onclick="if(event.target===this)document.getElementById('modal-exp-conclusion').classList.remove('open')">
+  <div class="modal" style="width:480px;">
+    <h3>编辑经验结论</h3>
+    <p style="font-size:11px;color:rgba(0,0,0,0.38);margin-bottom:10px;">一句话总结这条经验的核心结论，显示在经验卡片顶部</p>
+    <input class="exp-conclusion-inp" id="exp-conclusion-inp" placeholder="例：JWT 续签要用滑动窗口，固定过期会踢用户…" />
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('modal-exp-conclusion').classList.remove('open')">取消</button>
+      <button class="btn-primary" onclick="saveExpConclusion()">保存</button>
     </div>
   </div>
 </div>
@@ -702,6 +727,7 @@ let experiences=[];
 let mode='todos',activeTag=null,expFilter='all',searchText='';
 let pendingTagTarget=null,pendingSelTags=[];
 let pendingExpNoteId=null,pendingExpType='lesson';
+let _expConclusionId=null;
 let addingChainFor=null,batchSel={};
 /* pending images for compose (base64 before upload) */
 let composePendingImgs=[];
@@ -963,7 +989,7 @@ function renderRichText(text){
 function switchMode(m){
   mode=m;activeTag=null;addingChainFor=null;
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.mode===m));
-  document.getElementById('main-title').textContent=m==='todos'?'待办任务':m==='notes'?'全部笔记':'经验库';
+  document.getElementById('main-title').textContent=m==='todos'?'待办任务':m==='notes'?'全部笔记':'经验';
   document.getElementById('batch-btn').style.display=m==='todos'?'':'none';
   renderSidebarTags();render();
 }
@@ -1012,6 +1038,7 @@ function renderCaptureNote(cap){
       <div class="ct-sep"></div>
       <button class="ct-btn" onclick="capExec('insertUnorderedList')" title="无序列表"><i class="ti ti-list" style="font-size:13px" aria-hidden="true"></i></button>
       <button class="ct-btn" onclick="capExec('insertOrderedList')" title="有序列表"><i class="ti ti-list-numbers" style="font-size:13px" aria-hidden="true"></i></button>
+      <button class="ct-btn" onclick="capInsertTaskList()" title="待办清单"><i class="ti ti-checkbox" style="font-size:13px" aria-hidden="true"></i></button>
       <button class="ct-btn" onclick="capInsertBlock('blockquote')" title="引用"><i class="ti ti-blockquote" style="font-size:13px" aria-hidden="true"></i></button>
       <button class="ct-btn" onclick="capInsertBlock('pre')" title="代码块"><i class="ti ti-code" style="font-size:13px" aria-hidden="true"></i></button>
       <div class="ct-sep"></div>
@@ -1236,13 +1263,15 @@ function renderNotes(s){
         <span class="card-time">${n.time}</span>
         <div class="card-actions">
           <button class="card-btn to-todo" onclick="noteToTodo('${n.id}')">→ 转为待办</button>
-          <button class="card-btn to-exp" onclick="openExpModal('${n.id}')">→ 转为经验</button>
+          <button class="exp-mark-btn${n.isExp?' marked':''}" onclick="toggleExpMark('${n.id}')">${n.isExp?'⭐ 经验':'☆ 标记经验'}</button>
           <button class="card-btn" onclick="openTagModal('note','${n.id}')">标签</button>
           <button class="card-btn" onclick="deleteNote('${n.id}')" style="color:#ef4444">删除</button>
         </div>
       </div>
       <div class="card-body collapsed" id="nb-${n.id}" ondblclick="editNote('${n.id}')" title="双击编辑">${noteBodyHTML(n)}</div>
       <button class="card-expand-btn" id="nexp-${n.id}" onclick="toggleNoteExpand('${n.id}')">展开 ↓</button>
+      ${n.isExp?`<div class="exp-marked-badge"><i class="ti ti-star" style="font-size:9px;" aria-hidden="true"></i> 已标记为经验</div>`:''}
+      ${n.isExp&&n.expConclusion?`<div class="exp-conclusion">${esc(n.expConclusion)}</div>`:''}
       ${(n.images&&n.images.length)?`<div class="note-imgs">${n.images.map((img,i)=>`<div class="note-img-wrap"><img src="${img}" class="note-img" onclick="previewImg('${img}')" /><button class="note-img-del" onclick="deleteNoteImg('${n.id}',${i})">×</button></div>`).join('')}</div>`:''}
       ${n.tags.length?`<div class="card-tags">${n.tags.map(t=>`<span class="pill" style="color:${tagColor(t)}">${tagLabel(t)}</span>`).join('')}</div>`:''}
     </div>`).join('')
@@ -1331,6 +1360,35 @@ function gntInsertBlock(tag){
   if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(block);}
   else el.appendChild(block);
 }
+function gntInsertTaskList(){
+  if(!_editingNoteId)return;
+  const el=document.getElementById('nb-'+_editingNoteId);if(!el)return;
+  el.focus();
+  const ul=document.createElement('ul');ul.className='task-list';
+  const li=document.createElement('li');
+  const cb=document.createElement('input');cb.type='checkbox';
+  cb.addEventListener('change',function(){li.classList.toggle('checked',cb.checked);});
+  const span=document.createElement('span');span.textContent='待办事项';
+  li.appendChild(cb);li.appendChild(span);ul.appendChild(li);
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(ul);}
+  else el.appendChild(ul);
+  span.focus();
+}
+function capInsertTaskList(){
+  const ed=document.getElementById('cap-note-edit');if(!ed)return;
+  ed.focus();
+  const ul=document.createElement('ul');ul.className='task-list';
+  const li=document.createElement('li');
+  const cb=document.createElement('input');cb.type='checkbox';
+  cb.addEventListener('change',function(){li.classList.toggle('checked',cb.checked);});
+  const span=document.createElement('span');span.textContent='待办事项';
+  li.appendChild(cb);li.appendChild(span);ul.appendChild(li);
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(ul);}
+  else ed.appendChild(ul);
+  span.focus();
+}
 function noteExec(id,cmd){document.execCommand(cmd,false,null);}
 function noteExecBlock(id,tag){document.execCommand('formatBlock',false,tag);}
 function noteColor(id){gntColor();}
@@ -1347,182 +1405,31 @@ function noteToTodo(id){
   todos.unshift({id:uid(),done:false,text,date:'今天',isoDate:todayISO(),tags:[...n.tags],pinned:false,nextId:null,locked:false,images:[]});
   save();render();toast('已转为待办');
 }
-function openExpModal(id){
-  pendingExpNoteId=id;pendingExpType='lesson';
-  ['lesson','pitfall','pattern'].forEach(t=>{
-    const b=document.getElementById('eto-'+t);
-    if(b)b.className='exp-type-opt'+(t==='lesson'?' al':'');
-  });
-  openModal('exp');
+function toggleExpMark(id){
+  const n=notes.find(x=>String(x.id)===String(id));if(!n)return;
+  n.isExp=!n.isExp;
+  if(!n.isExp)n.expConclusion='';
+  saveNotes();render();
+  toast(n.isExp?'已标记为经验':'已取消标记');
 }
-function selExpType(t){
-  pendingExpType=t;
-  const map={lesson:'al',pitfall:'ap',pattern:'am'};
-  ['lesson','pitfall','pattern'].forEach(x=>{const b=document.getElementById('eto-'+x);if(b)b.className='exp-type-opt'+(x===t?' '+map[x]:'');});
+function openExpConclusionModal(id){
+  const n=notes.find(x=>String(x.id)===String(id));if(!n)return;
+  _expConclusionId=id;
+  const inp=document.getElementById('exp-conclusion-inp');
+  if(inp)inp.value=n.expConclusion||'';
+  document.getElementById('modal-exp-conclusion').classList.add('open');
+  setTimeout(()=>inp&&inp.focus(),80);
 }
-function confirmExp(){
-  const n=notes.find(x=>String(x.id)===String(pendingExpNoteId));if(!n)return;
-  experiences.unshift({id:uid(),type:pendingExpType,title:n.text.slice(0,22)+(n.text.length>22?'…':''),body:n.text,tags:[...n.tags],date:'刚刚',isoDate:todayISO()});
-  saveExp();closeModal('exp');render();toast('已转为经验');
+function saveExpConclusion(){
+  if(!_expConclusionId)return;
+  const n=notes.find(x=>String(x.id)===String(_expConclusionId));if(!n)return;
+  const inp=document.getElementById('exp-conclusion-inp');
+  if(inp)n.expConclusion=inp.value.trim();
+  document.getElementById('modal-exp-conclusion').classList.remove('open');
+  _expConclusionId=null;
+  saveNotes();render();toast('结论已保存');
 }
-function deleteNoteImg(noteId,idx){
-  const n=notes.find(x=>String(x.id)===String(noteId));if(!n||!n.images)return;
-  n.images.splice(idx,1);saveNotes();renderNotes(document.getElementById('stream'));
-}
-function previewImg(src){document.getElementById('img-preview').src=src;document.getElementById('img-overlay').classList.add('open');}
-function closeImgPreview(){document.getElementById('img-overlay').classList.remove('open');}
-
-/* ── TODOS RENDER ── */
-function applyTodoDateFilter(list){
-  const tk=todayKey();
-  if(_hmSelectedDate){
-    return list.filter(t=>t.isoDate===_hmSelectedDate);
-  }
-  const qf=window._hmQuickFilter;
-  if(qf==='today') return list.filter(t=>t.isoDate===tk);
-  if(qf==='week'){
-    const d=new Date();const dow=d.getDay()||7;
-    const mon=new Date(d);mon.setDate(d.getDate()-dow+1);
-    const monK=mon.toISOString().slice(0,10);
-    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
-    const sunK=sun.toISOString().slice(0,10);
-    return list.filter(t=>t.isoDate&&t.isoDate>=monK&&t.isoDate<=sunK);
-  }
-  if(qf==='overdue') return list.filter(t=>t.isoDate&&t.isoDate<tk&&!t.done);
-  return list;
-}
-function renderTodos(s){
-  let base=todos.filter(t=>(!activeTag||t.tags.includes(activeTag))&&matchSearch(t.text,t.tags));
-  let pending=applyTodoDateFilter(base.filter(t=>!t.done));
-  let done=applyTodoDateFilter(base.filter(t=>t.done));
-  pending.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-  const isFiltered=!!(_hmSelectedDate||window._hmQuickFilter);
-  let html='<div class="todo-wrap">';
-  if(!pending.length)html+='<div style="padding:14px 13px;font-size:12px;color:rgba(0,0,0,0.3)">'+(isFiltered?'该日期没有待办任务':'今天的任务都完成了 🎉')+'</div>';
-  else html+=renderChainedTodos(pending);
-  html+=`</div>`;
-  if(done.length){html+='<div class="sec-done">已完成</div><div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';}
-  s.innerHTML=html;
-}
-function renderChainedTodos(list){
-  let html='';
-  list.forEach(t=>{
-    html+=todoRowHTML(t);
-    if(t.nextId&&list.find(x=>String(x.id)===String(t.nextId))){
-      html+=`<div class="chain-connector"><div class="chain-line${t.done?' unlocked':''}"></div><span class="chain-label">${t.done?'↓ 已解锁':'↓ 完成后解锁'}</span></div>`;
-    }
-    if(String(addingChainFor)===String(t.id)){
-      html+=`<div class="chain-add-area">
-        <div class="chain-add-label">完成后自动触发下一步：</div>
-        <div class="chain-add-row">
-          <input class="chain-add-input" id="chain-inp" placeholder="下一步做什么..." />
-          <button class="chain-add-ok" onclick="confirmChainAdd('${t.id}')">确定</button>
-          <button class="chain-add-cancel" onclick="cancelChainAdd()">取消</button>
-        </div></div>`;
-    }
-  });
-  return html;
-}
-function todoRowHTML(t){
-  const isNext=!t.done&&!t.locked&&todos.some(x=>String(x.nextId)===String(t.id)&&x.done);
-  let badge='';
-  if(t.done&&t.nextId)badge='<span class="badge-chain">已触发</span>';
-  else if(isNext)badge='<span class="badge-next">轮到你了</span>';
-  else if(t.locked)badge='<span class="badge-lock">等待前置</span>';
-  const imgsHtml=(t.images&&t.images.length)?`<div class="todo-imgs">${t.images.map((img,i)=>`<div class="todo-img-wrap"><img src="${img}" class="todo-img" onclick="previewImg('${img}')" /><button class="todo-img-del" onclick="deleteTodoImg('${t.id}',${i})">×</button></div>`).join('')}</div>`:'';
-  /* remark preview — first line only, click opens modal */
-  const remark=t.remark||'';
-  const remarkHtml=remark?`<div class="todo-remark-preview has-remark" onclick="openTodoEditModal('${t.id}')">${esc(remark.split('\n')[0])}</div>`:'';
-  const dblHandler=t.done||t.locked?'':(`openTodoEditModal('${t.id}')`);
-  return`<div class="todo-row${t.pinned&&!t.done?' pinned':''}${isNext?' active-next':''}" id="tr-${t.id}">
-    <div class="todo-circle${t.done?' done':t.locked?' locked':''}" onclick="${t.locked?`toast('需先完成前置任务')`:`toggleTodo('${t.id}')`}"></div>
-    <div class="todo-body" ondblclick="${dblHandler}" style="${t.done||t.locked?'':'cursor:pointer;'}" title="${t.done||t.locked?'':'双击编辑'}">
-      <div class="todo-title${t.done?' done':t.locked?' locked-t':''}" id="tt-${t.id}">${renderRichText(t.text)}${t.pinned&&!t.done?' <span style="font-size:10px;opacity:0.5">📌</span>':''}</div>
-      <div class="todo-sub">
-        <span class="todo-date">${t.date}</span>
-        ${t.tags.map(tg=>`<span class="todo-tag-pill" style="color:${tagColor(tg)}">${tagLabel(tg)}</span>`).join('')}
-        ${badge}
-      </div>
-      ${imgsHtml}
-      ${remarkHtml}
-    </div>
-    <div class="todo-actions">
-      ${!t.done&&!t.locked?`<button class="t-btn chain-btn" onclick="startChainAdd('${t.id}')">+ 接下一步</button>`:''}
-      ${!t.done?`<button class="t-btn${t.pinned?' pin-active':''}" onclick="togglePin('${t.id}')">${t.pinned?'取消置顶':'📌 置顶'}</button>`:''}
-      <button class="t-btn" onclick="openTagModal('todo','${t.id}')">标签</button>
-      <button class="t-btn" onclick="deleteTodo('${t.id}')" style="color:#ef4444">删除</button>
-    </div>
-  </div>`;
-}
-/* todo edit modal */
-let _todoEditId=null;
-function openTodoEditModal(id){
-  const t=todos.find(x=>String(x.id)===String(id));if(!t||t.done||t.locked)return;
-  _todoEditId=id;
-  document.getElementById('todo-edit-title').value=t.text||'';
-  const dateInp=document.getElementById('todo-edit-date');
-  if(dateInp)dateInp.value=t.isoDate||'';
-  const rem=document.getElementById('todo-edit-remark');
-  if(rem)rem.innerHTML=t.remarkHtml||esc(t.remark||'');
-  document.getElementById('modal-todo-edit').classList.add('open');
-  setTimeout(()=>document.getElementById('todo-edit-title').focus(),80);
-}
-function closeTodoEditModal(){
-  document.getElementById('modal-todo-edit').classList.remove('open');
-  _todoEditId=null;
-}
-function saveTodoEditModal(){
-  if(!_todoEditId)return;
-  const t=todos.find(x=>String(x.id)===String(_todoEditId));if(!t)return;
-  const titleInp=document.getElementById('todo-edit-title');
-  const dateInp=document.getElementById('todo-edit-date');
-  const remEl=document.getElementById('todo-edit-remark');
-  if(titleInp&&titleInp.value.trim())t.text=titleInp.value.trim();
-  if(dateInp){
-    const v=dateInp.value;
-    if(v){
-      t.isoDate=v;
-      const d=isoToDate(v);
-      const tk=todayKey();
-      const tk2=new Date();tk2.setDate(tk2.getDate()+1);const tom=tk2.toISOString().slice(0,10);
-      t.date=v===tk?'今天':v===tom?'明天':((d.getMonth()+1)+'/'+(d.getDate()));
-    }else{
-      t.isoDate=null;
-    }
-  }
-  if(remEl){t.remarkHtml=remEl.innerHTML;t.remark=remEl.textContent.trim();}
-  closeTodoEditModal();saveTodos();render();renderHeatmap();toast('已保存');
-}
-function remarkExec(cmd){document.execCommand(cmd,false,null);}
-function remarkHighlight(color){
-  const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
-  const r=sel.getRangeAt(0);if(r.collapsed)return;
-  const mark=document.createElement('mark');if(color==='green')mark.className='green';
-  try{r.surroundContents(mark);}catch(e){}
-}
-function remarkColor(){
-  const pick=document.getElementById('remark-color-pick');if(!pick)return;
-  document.execCommand('foreColor',false,pick.value);
-}
-function toggleTodo(id){
-  const t=todos.find(x=>String(x.id)===String(id));if(!t||t.locked)return;
-  t.done=!t.done;t.date=t.done?'已完成':'今天';
-  if(t.done&&t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n){n.locked=false;toast('完成！下一步已解锁 →');}}
-  else if(t.done)toast('任务完成 ✓');
-  else{if(t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n)n.locked=true;}}
-  saveTodos();render();
-}
-function togglePin(id){const t=todos.find(x=>String(x.id)===String(id));if(!t)return;t.pinned=!t.pinned;saveTodos();render();toast(t.pinned?'已置顶 📌':'已取消置顶');}
-function deleteTodo(id){
-  todos.forEach(t=>{if(String(t.nextId)===String(id))t.nextId=null;});
-  todos=todos.filter(t=>String(t.id)!==String(id));
-  saveTodos();render();toast('待办已删除');
-}
-function deleteTodoImg(todoId,idx){
-  const t=todos.find(x=>String(x.id)===String(todoId));if(!t||!t.images)return;
-  t.images.splice(idx,1);saveTodos();render();
-}
-/* remark functions replaced by todo edit modal */
+/* remark functions replaced by todo edit modal *//* remark functions replaced by todo edit modal */
 function startChainAdd(id){
   addingChainFor=id;render();
   setTimeout(()=>{
@@ -1543,23 +1450,24 @@ function focusTodoCap(){const inp=document.getElementById('cap-todo-inp');if(inp
 
 /* ── EXPERIENCE ── */
 function renderExp(s){
-  let list=experiences.filter(e=>{
-    const tm=expFilter==='all'||e.type===expFilter;
-    const tg=!activeTag||e.tags.includes(activeTag);
-    return tm&&tg&&matchSearch(e.title+e.body,e.tags);
-  });
-  const c={all:experiences.length,lesson:experiences.filter(e=>e.type==='lesson').length,pitfall:experiences.filter(e=>e.type==='pitfall').length,pattern:experiences.filter(e=>e.type==='pattern').length};
-  let html=`<div class="exp-filter">
-    <button class="ef-btn${expFilter==='all'?' active-f':''}" onclick="setExpFilter('all')">全部 ${c.all}</button>
-    <button class="ef-btn${expFilter==='lesson'?' active-f':''}" onclick="setExpFilter('lesson')">教训 ${c.lesson}</button>
-    <button class="ef-btn${expFilter==='pitfall'?' active-f':''}" onclick="setExpFilter('pitfall')">踩坑 ${c.pitfall}</button>
-    <button class="ef-btn${expFilter==='pattern'?' active-f':''}" onclick="setExpFilter('pattern')">模式 ${c.pattern}</button>
-  </div>`;
-  if(!list.length){html+='<div style="text-align:center;padding:60px 0;color:rgba(0,0,0,0.28);font-size:13px">暂无经验</div>';s.innerHTML=html;return;}
-  html+=list.map(e=>`<div class="exp-card">
-    <div class="exp-head"><div class="exp-title">${esc(e.title)}</div><span class="exp-badge ${e.type}">${e.type==='lesson'?'教训':e.type==='pitfall'?'踩坑':'模式'}</span></div>
-    <div class="exp-body">${esc(e.body)}</div>
-    <div class="exp-footer">${e.tags.map(t=>`<span class="pill" style="color:${tagColor(t)}">${tagLabel(t)}</span>`).join('')}<span class="exp-date">${e.date}</span></div>
+  const list=notes.filter(n=>n.isExp&&(!activeTag||n.tags.includes(activeTag))&&matchSearch(n.text||'',n.tags));
+  let html='';
+  if(!list.length){
+    html='<div style="text-align:center;padding:60px 0;color:rgba(0,0,0,0.28);font-size:13px">还没有标记为经验的笔记<br><span style="font-size:11px;margin-top:6px;display:block;">在笔记中点「☆ 标记经验」即可收录</span></div>';
+    s.innerHTML=html;return;
+  }
+  html='<div style="font-size:11px;color:rgba(0,0,0,0.3);padding:0 0 10px;display:flex;align-items:center;gap:6px;"><i class=\"ti ti-star\" style=\"font-size:11px;color:#92400e;\" aria-hidden=\"true\"></i>共 '+list.length+' 条经验</div>';
+  html+=list.map(n=>`<div class="card is-exp" id="exp-note-${n.id}">
+    <div class="card-meta">
+      <span class="card-time">${n.time} · ${n.date}</span>
+      <div class="card-actions">
+        <button class="exp-mark-btn marked" onclick="toggleExpMark('${n.id}')">⭐ 取消标记</button>
+        <button class="card-btn" onclick="openExpConclusionModal('${n.id}')">编辑结论</button>
+      </div>
+    </div>
+    ${n.expConclusion?`<div class="exp-conclusion">${esc(n.expConclusion)}</div>`:''}
+    <div class="card-body collapsed" style="margin-top:4px;">${noteBodyHTML(n)}</div>
+    ${n.tags.length?`<div class="card-tags">${n.tags.map(t=>`<span class="pill" style="color:${tagColor(t)}">${tagLabel(t)}</span>`).join('')}</div>`:''}
   </div>`).join('');
   s.innerHTML=html;
 }
@@ -1762,7 +1670,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();spOpen();return;}
   if(e.key==='Escape'){
     if(document.getElementById('search-panel').classList.contains('open')){spClose();return;}
-    ['tag','tagmgr','link','exp','batch','sync'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});
+    ['tag','tagmgr','link','exp','batch','sync'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
     closeTodoEditModal();closeImgPreview();
     if(_editingNoteId)gntCancel();
   }
