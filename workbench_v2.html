@@ -1225,6 +1225,127 @@ async function addNote(){
 }
 
 /* ── ADD TODO ── */
+function applyTodoDateFilter(list){
+  const tk=todayKey();
+  if(_hmSelectedDate){
+    return list.filter(t=>t.isoDate===_hmSelectedDate);
+  }
+  const qf=window._hmQuickFilter;
+  if(qf==='today') return list.filter(t=>t.isoDate===tk);
+  if(qf==='week'){
+    const d=new Date();const dow=d.getDay()||7;
+    const mon=new Date(d);mon.setDate(d.getDate()-dow+1);
+    const monK=mon.toISOString().slice(0,10);
+    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+    const sunK=sun.toISOString().slice(0,10);
+    return list.filter(t=>t.isoDate&&t.isoDate>=monK&&t.isoDate<=sunK);
+  }
+  if(qf==='overdue') return list.filter(t=>t.isoDate&&t.isoDate<tk&&!t.done);
+  return list;
+}
+function renderTodos(s){
+  let base=todos.filter(t=>(!activeTag||t.tags.includes(activeTag))&&matchSearch(t.text,t.tags));
+  let pending=applyTodoDateFilter(base.filter(t=>!t.done));
+  let done=applyTodoDateFilter(base.filter(t=>t.done));
+  pending.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  const isFiltered=!!(_hmSelectedDate||window._hmQuickFilter);
+  let html='<div class="todo-wrap">';
+  if(!pending.length)html+='<div style="padding:14px 13px;font-size:12px;color:rgba(0,0,0,0.3)">'+(isFiltered?'该日期没有待办任务':'今天的任务都完成了 🎉')+'</div>';
+  else html+=renderChainedTodos(pending);
+  html+=`</div>`;
+  if(done.length){html+='<div class="sec-done">已完成</div><div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';}
+  s.innerHTML=html;
+}
+function renderChainedTodos(list){
+  let html='';
+  list.forEach(t=>{
+    html+=todoRowHTML(t);
+    if(t.nextId&&list.find(x=>String(x.id)===String(t.nextId))){
+      html+=`<div class="chain-connector"><div class="chain-line${t.done?' unlocked':''}"></div><span class="chain-label">${t.done?'↓ 已解锁':'↓ 完成后解锁'}</span></div>`;
+    }
+    if(String(addingChainFor)===String(t.id)){
+      html+=`<div class="chain-add-area">
+        <div class="chain-add-label">完成后自动触发下一步：</div>
+        <div class="chain-add-row">
+          <input class="chain-add-input" id="chain-inp" placeholder="下一步做什么..." />
+          <button class="chain-add-ok" onclick="confirmChainAdd('${t.id}')">确定</button>
+          <button class="chain-add-cancel" onclick="cancelChainAdd()">取消</button>
+        </div></div>`;
+    }
+  });
+  return html;
+}
+function todoRowHTML(t){
+  const isNext=!t.done&&!t.locked&&todos.some(x=>String(x.nextId)===String(t.id)&&x.done);
+  let badge='';
+  if(t.done&&t.nextId)badge='<span class="badge-chain">已触发</span>';
+  else if(isNext)badge='<span class="badge-next">轮到你了</span>';
+  else if(t.locked)badge='<span class="badge-lock">等待前置</span>';
+  const imgsHtml=(t.images&&t.images.length)?`<div class="todo-imgs">${t.images.map((img,i)=>`<div class="todo-img-wrap"><img src="${img}" class="todo-img" onclick="previewImg('${img}')" /><button class="todo-img-del" onclick="deleteTodoImg('${t.id}',${i})">×</button></div>`).join('')}</div>`:'';
+  /* remark preview — first line only, click opens modal */
+  const remark=t.remark||'';
+  const remarkHtml=remark?`<div class="todo-remark-preview has-remark" onclick="openTodoEditModal('${t.id}')">${esc(remark.split('\n')[0])}</div>`:'';
+  const dblHandler=t.done||t.locked?'':(`openTodoEditModal('${t.id}')`);
+  return`<div class="todo-row${t.pinned&&!t.done?' pinned':''}${isNext?' active-next':''}" id="tr-${t.id}">
+    <div class="todo-circle${t.done?' done':t.locked?' locked':''}" onclick="${t.locked?`toast('需先完成前置任务')`:`toggleTodo('${t.id}')`}"></div>
+    <div class="todo-body" ondblclick="${dblHandler}" style="${t.done||t.locked?'':'cursor:pointer;'}" title="${t.done||t.locked?'':'双击编辑'}">
+      <div class="todo-title${t.done?' done':t.locked?' locked-t':''}" id="tt-${t.id}">${renderRichText(t.text)}${t.pinned&&!t.done?' <span style="font-size:10px;opacity:0.5">📌</span>':''}</div>
+      <div class="todo-sub">
+        <span class="todo-date">${t.date}</span>
+        ${t.tags.map(tg=>`<span class="todo-tag-pill" style="color:${tagColor(tg)}">${tagLabel(tg)}</span>`).join('')}
+        ${badge}
+      </div>
+      ${imgsHtml}
+      ${remarkHtml}
+    </div>
+    <div class="todo-actions">
+      ${!t.done&&!t.locked?`<button class="t-btn chain-btn" onclick="startChainAdd('${t.id}')">+ 接下一步</button>`:''}
+      ${!t.done?`<button class="t-btn${t.pinned?' pin-active':''}" onclick="togglePin('${t.id}')">${t.pinned?'取消置顶':'📌 置顶'}</button>`:''}
+      <button class="t-btn" onclick="openTagModal('todo','${t.id}')">标签</button>
+      <button class="t-btn" onclick="deleteTodo('${t.id}')" style="color:#ef4444">删除</button>
+    </div>
+  </div>`;
+}
+/* todo edit modal */
+let _todoEditId=null;
+function openTodoEditModal(id){
+  const t=todos.find(x=>String(x.id)===String(id));if(!t||t.done||t.locked)return;
+  _todoEditId=id;
+  document.getElementById('todo-edit-title').value=t.text||'';
+  const dateInp=document.getElementById('todo-edit-date');
+  if(dateInp)dateInp.value=t.isoDate||'';
+  const rem=document.getElementById('todo-edit-remark');
+  if(rem)rem.innerHTML=t.remarkHtml||esc(t.remark||'');
+  document.getElementById('modal-todo-edit').classList.add('open');
+  setTimeout(()=>document.getElementById('todo-edit-title').focus(),80);
+}
+function closeTodoEditModal(){
+  document.getElementById('modal-todo-edit').classList.remove('open');
+  _todoEditId=null;
+}
+function saveTodoEditModal(){
+  if(!_todoEditId)return;
+  const t=todos.find(x=>String(x.id)===String(_todoEditId));if(!t)return;
+  const titleInp=document.getElementById('todo-edit-title');
+  const dateInp=document.getElementById('todo-edit-date');
+  const remEl=document.getElementById('todo-edit-remark');
+  if(titleInp&&titleInp.value.trim())t.text=titleInp.value.trim();
+  if(dateInp){
+    const v=dateInp.value;
+    if(v){
+      t.isoDate=v;
+      const d=isoToDate(v);
+      const tk=todayKey();
+      const tk2=new Date();tk2.setDate(tk2.getDate()+1);const tom=tk2.toISOString().slice(0,10);
+      t.date=v===tk?'今天':v===tom?'明天':((d.getMonth()+1)+'/'+(d.getDate()));
+    }else{
+      t.isoDate=null;
+    }
+  }
+  if(remEl){t.remarkHtml=remEl.innerHTML;t.remark=remEl.textContent.trim();}
+  closeTodoEditModal();saveTodos();render();renderHeatmap();toast('已保存');
+}
+
 async function addTodo(){
   const inp=document.getElementById('cap-todo-inp');if(!inp)return;
   const text=inp.value.trim();if(!text&&!todoPendingImgs.length)return;
