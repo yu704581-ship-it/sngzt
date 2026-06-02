@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.2B</title>
+<title>工作台 v2.2D</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -310,13 +310,20 @@ body::before{
 .up-bar-wrap{width:220px;height:6px;background:rgba(0,0,0,0.1);border-radius:3px;overflow:hidden;}
 .up-bar{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:3px;transition:width .25s ease;}
 .up-label{font-size:12px;color:rgba(0,0,0,0.55);}
+/* sync top bar */
+.sync-topbar{position:fixed;top:0;left:0;right:0;height:2px;z-index:999;pointer-events:none;opacity:0;transition:opacity .2s;}
+.sync-topbar.active{opacity:1;}
+.sync-topbar-track{height:100%;background:rgba(99,102,241,0.12);}
+.sync-topbar-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:0 1px 1px 0;transition:width .4s ease;width:0%;}
+.sync-topbar.done .sync-topbar-fill{background:#22c55e;}
+.sync-topbar.fade{opacity:0;transition:opacity .5s ease;}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.2B</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.2D</span></div>
     <div class="sb-stats">
       <div class="sb-stat"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -466,6 +473,7 @@ body::before{
   <div class="up-bar-wrap"><div class="up-bar" id="up-bar" style="width:0%"></div></div>
 </div>
 
+<div class="sync-topbar" id="sync-topbar"><div class="sync-topbar-track"><div class="sync-topbar-fill" id="sync-topbar-fill"></div></div></div>
 <div class="toast" id="toast"></div>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
@@ -491,6 +499,10 @@ const GH_FILES={
 /* sha cache per file */
 let _sha={notes:null,todos:null,experiences:null,tags:null};
 let _syncTimer=null;
+let _pulling=false;
+let _pushing=false;
+/* dirty flags — only push files that actually changed */
+let _dirty={notes:false,todos:false,experiences:false,tags:false};
 
 let notes=[];
 let todos=[];
@@ -545,7 +557,13 @@ function loadLocal(){
 function saveLocal(){
   localStorage.setItem('wb_v22',JSON.stringify({notes,todos,experiences,tags:TAGS}));
 }
-function save(){saveLocal();schedulePush();}
+/* granular save — mark only the changed dataset dirty */
+function saveNotes(){saveLocal();_dirty.notes=true;schedulePush();}
+function saveTodos(){saveLocal();_dirty.todos=true;schedulePush();}
+function saveExp(){saveLocal();_dirty.experiences=true;schedulePush();}
+function saveTags(){saveLocal();_dirty.tags=true;schedulePush();}
+/* save() marks everything dirty — used when multiple datasets change at once */
+function save(){saveLocal();_dirty.notes=true;_dirty.todos=true;_dirty.experiences=true;_dirty.tags=true;schedulePush();}
 
 /* ── GITHUB MULTI-FILE ── */
 function ghCfg(){try{return JSON.parse(localStorage.getItem('wb_gh')||'null');}catch(e){return null;}}
@@ -562,6 +580,31 @@ function ghFileUrl(name){
 function ghImgUrl(path){
   const c=ghCfg();
   return'https://api.github.com/repos/'+c.owner.trim()+'/'+c.repo.trim()+'/contents/'+path;
+}
+
+/* ── SYNC TOP BAR ── */
+let _topbarTimer=null;
+function syncBarStart(){
+  const bar=document.getElementById('sync-topbar');
+  const fill=document.getElementById('sync-topbar-fill');
+  if(!bar||!fill)return;
+  clearTimeout(_topbarTimer);
+  bar.className='sync-topbar active';
+  fill.style.width='0%';
+  /* animate to 80% while waiting */
+  requestAnimationFrame(()=>{fill.style.width='80%';});
+}
+function syncBarDone(ok){
+  const bar=document.getElementById('sync-topbar');
+  const fill=document.getElementById('sync-topbar-fill');
+  if(!bar||!fill)return;
+  fill.style.transition='width .15s ease';
+  fill.style.width='100%';
+  fill.style.background=ok?'#22c55e':'#ef4444';
+  clearTimeout(_topbarTimer);
+  _topbarTimer=setTimeout(()=>{bar.classList.add('fade');
+    setTimeout(()=>{bar.className='sync-topbar';fill.style.width='0%';fill.style.background='';fill.style.transition='';},500);
+  },700);
 }
 
 function setSyncStatus(state,msg){
@@ -614,20 +657,36 @@ async function ghUploadImage(path,base64Data){
 
 async function ghPushAll(){
   if(!ghConfigured())return;
+  if(_pulling||_pushing)return;
+  const toSync=Object.keys(_dirty).filter(k=>_dirty[k]);
+  if(!toSync.length)return;
+  _pushing=true;
+  syncBarStart();
   setSyncStatus('ing','同步中…');
+  const dataMap={notes,todos,experiences,tags:TAGS};
+  const total=toSync.length;
+  let done=0;
   try{
-    await Promise.all([
-      ghPushFile('notes',notes),
-      ghPushFile('todos',todos),
-      ghPushFile('experiences',experiences),
-      ghPushFile('tags',TAGS)
-    ]);
-    const t=new Date();setSyncStatus('ok','已同步 '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0'));
-  }catch(e){setSyncStatus('err','同步失败: '+e.message);}
+    /* serial push per file — avoid SHA conflicts */
+    for(const name of toSync){
+      await ghPushFile(name,dataMap[name]);
+      _dirty[name]=false;
+      done++;
+      const pct=20+Math.round((done/total)*75);
+      document.getElementById('sync-topbar-fill').style.width=pct+'%';
+    }
+    const t=new Date();
+    setSyncStatus('ok','已同步 '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0'));
+    syncBarDone(true);
+  }catch(e){
+    setSyncStatus('err','同步失败: '+e.message);
+    syncBarDone(false);
+  }finally{_pushing=false;}
 }
 
 async function ghPullAll(){
   if(!ghConfigured())return;
+  _pulling=true;
   setSyncStatus('ing','加载中…');
   try{
     const [rn,rt,re,rtags]=await Promise.all([
@@ -641,9 +700,14 @@ async function ghPullAll(){
     if(!rn||!rt||!re||!rtags)await ghPushAll();
     saveLocal();renderAll();setSyncStatus('ok','已从云端加载');
   }catch(e){setSyncStatus('err','读取失败: '+e.message);}
+  finally{_pulling=false;}
 }
 
-function schedulePush(){if(_syncTimer)clearTimeout(_syncTimer);_syncTimer=setTimeout(ghPushAll,1500);}
+function schedulePush(){
+  if(_pulling)return; /* pull 未完成时不触发 push，避免 SHA 冲突 */
+  if(_syncTimer)clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(ghPushAll,1500);
+}
 
 function openSyncForm(){
   const c=ghCfg()||{};
@@ -820,7 +884,7 @@ function handleImgPaste(e,noteId){
         }else{
           n.images.push(d);
         }
-        save();renderNotes(document.getElementById('stream'));toast('图片已添加');
+        saveNotes();renderNotes(document.getElementById('stream'));toast('图片已添加');
       });
       return;
     }
@@ -944,7 +1008,7 @@ function editNote(id){
 }
 function deleteNote(id){
   if(!confirm('确认删除这条笔记？'))return;
-  notes=notes.filter(n=>String(n.id)!==String(id));save();render();toast('笔记已删除');
+  notes=notes.filter(n=>String(n.id)!==String(id));saveNotes();render();toast('笔记已删除');
 }
 function noteToTodo(id){
   const n=notes.find(x=>String(x.id)===String(id));if(!n)return;
@@ -968,11 +1032,11 @@ function selExpType(t){
 function confirmExp(){
   const n=notes.find(x=>String(x.id)===String(pendingExpNoteId));if(!n)return;
   experiences.unshift({id:uid(),type:pendingExpType,title:n.text.slice(0,22)+(n.text.length>22?'…':''),body:n.text,tags:[...n.tags],date:'刚刚'});
-  save();closeModal('exp');render();toast('已转为经验');
+  saveExp();closeModal('exp');render();toast('已转为经验');
 }
 function deleteNoteImg(noteId,idx){
   const n=notes.find(x=>String(x.id)===String(noteId));if(!n||!n.images)return;
-  n.images.splice(idx,1);save();renderNotes(document.getElementById('stream'));
+  n.images.splice(idx,1);saveNotes();renderNotes(document.getElementById('stream'));
 }
 function previewImg(src){document.getElementById('img-preview').src=src;document.getElementById('img-overlay').classList.add('open');}
 function closeImgPreview(){document.getElementById('img-overlay').classList.remove('open');}
@@ -1068,17 +1132,17 @@ function toggleTodo(id){
   if(t.done&&t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n){n.locked=false;toast('完成！下一步已解锁 →');}}
   else if(t.done)toast('任务完成 ✓');
   else{if(t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n)n.locked=true;}}
-  save();render();
+  saveTodos();render();
 }
-function togglePin(id){const t=todos.find(x=>String(x.id)===String(id));if(!t)return;t.pinned=!t.pinned;save();render();toast(t.pinned?'已置顶 📌':'已取消置顶');}
+function togglePin(id){const t=todos.find(x=>String(x.id)===String(id));if(!t)return;t.pinned=!t.pinned;saveTodos();render();toast(t.pinned?'已置顶 📌':'已取消置顶');}
 function deleteTodo(id){
   todos.forEach(t=>{if(String(t.nextId)===String(id))t.nextId=null;});
   todos=todos.filter(t=>String(t.id)!==String(id));
-  save();render();toast('待办已删除');
+  saveTodos();render();toast('待办已删除');
 }
 function deleteTodoImg(todoId,idx){
   const t=todos.find(x=>String(x.id)===String(todoId));if(!t||!t.images)return;
-  t.images.splice(idx,1);save();render();
+  t.images.splice(idx,1);saveTodos();render();
 }
 function toggleRemark(id){
   const full=document.getElementById('rf-'+id);
@@ -1098,7 +1162,7 @@ function saveRemark(id){
   const t=todos.find(x=>String(x.id)===String(id));if(!t)return;
   const ta=document.getElementById('rta-'+id);if(!ta)return;
   t.remark=ta.value.trim();
-  save();
+  saveTodos();
   /* update preview without full re-render */
   const preview=document.getElementById('rp-'+id);
   if(preview){
@@ -1128,7 +1192,7 @@ function confirmChainAdd(id){
   const t=todos.find(x=>String(x.id)===String(id));if(!t)return;
   const nid=uid();
   todos.splice(todos.findIndex(x=>String(x.id)===String(id))+1,0,{id:nid,done:false,text,date:'待定',tags:[],pinned:false,nextId:t.nextId,locked:!t.done,images:[]});
-  t.nextId=nid;addingChainFor=null;save();render();toast('已加入任务链');
+  t.nextId=nid;addingChainFor=null;saveTodos();render();toast('已加入任务链');
 }
 function focusTodoCap(){const inp=document.getElementById('cap-todo-inp');if(inp)inp.focus();}
 
@@ -1201,7 +1265,7 @@ function addTagFromModal(){
   const label=name.startsWith('#')?name:'#'+name;
   const id='tag_'+uid();
   TAGS.push({id,label,color});
-  save();renderTagMgrList();renderSidebarTags();toast('标签已添加');
+  saveTags();renderTagMgrList();renderSidebarTags();toast('标签已添加');
   document.getElementById('tag-add-name').value='';
 }
 function deleteTag(id){
@@ -1211,7 +1275,7 @@ function deleteTag(id){
   notes.forEach(n=>{n.tags=n.tags.filter(x=>x!==id);});
   todos.forEach(t=>{t.tags=t.tags.filter(x=>x!==id);});
   experiences.forEach(e=>{e.tags=e.tags.filter(x=>x!==id);});
-  save();renderTagMgrList();renderSidebarTags();render();toast('标签已删除');
+  saveTags();renderTagMgrList();renderSidebarTags();render();toast('标签已删除');
 }
 
 /* ── BATCH ── */
@@ -1237,7 +1301,7 @@ function confirmBatch(){
   const ids=Object.keys(batchSel).filter(id=>batchSel[id]);
   if(!ids.length){toast('请至少选择一条');return;}
   ids.forEach(id=>{const t=todos.find(x=>String(x.id)===String(id));if(t&&!t.done)t.date=date;});
-  save();closeModal('batch');render();toast(`已将 ${ids.length} 条改到 ${date}`);
+  saveTodos();closeModal('batch');render();toast(`已将 ${ids.length} 条改到 ${date}`);
 }
 
 /* ── MODAL HELPERS ── */
