@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.2D</title>
+<title>工作台 v2.3</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -138,10 +138,33 @@ body::before{
 .card-btn.to-todo:hover{background:rgba(14,165,233,0.08);}
 .card-btn.to-exp{color:#047857;border-color:rgba(16,185,129,0.3);}
 .card-btn.to-exp:hover{background:rgba(16,185,129,0.08);}
-.card-body{font-size:13px;color:rgba(0,0,0,0.78);line-height:1.65;word-break:break-word;cursor:default;}
-.card-body[contenteditable="true"]{outline:none;border-bottom:1.5px solid #6366f1;cursor:text;}
+.card-body{font-size:13px;color:rgba(0,0,0,0.78);line-height:1.75;word-break:break-word;cursor:default;}
+.card-body[contenteditable="true"]{outline:none;cursor:text;}
 .card-body a{color:#4f46e5;text-decoration:underline;text-underline-offset:2px;}
 .card-body a:hover{color:#4338ca;}
+.card-body h1{font-size:17px;font-weight:500;margin:6px 0 4px;color:rgba(0,0,0,0.88);}
+.card-body h2{font-size:15px;font-weight:500;margin:5px 0 3px;color:rgba(0,0,0,0.84);}
+.card-body h3{font-size:13.5px;font-weight:500;margin:4px 0 3px;color:rgba(0,0,0,0.82);}
+.card-body ul,.card-body ol{margin:4px 0 4px 18px;font-size:13px;}
+.card-body blockquote{border-left:3px solid #6366f1;border-radius:0;padding:5px 12px;background:rgba(99,102,241,0.05);margin:5px 0;color:rgba(0,0,0,0.6);font-size:12.5px;line-height:1.65;}
+.card-body pre{background:rgba(0,0,0,0.04);border:0.5px solid rgba(0,0,0,0.08);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:11.5px;overflow-x:auto;margin:5px 0;white-space:pre-wrap;}
+.card-body mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 2px;}
+.card-body mark.green{background:#bbf7d0;color:#14532d;}
+/* note toolbar */
+.note-toolbar{display:none;align-items:center;gap:2px;padding:5px 10px;border-top:0.5px solid rgba(0,0,0,0.05);flex-wrap:wrap;background:rgba(0,0,0,0.015);}
+.note-toolbar.show{display:flex;}
+.nt-btn{width:24px;height:24px;border-radius:4px;border:none;background:none;font-size:11px;color:rgba(0,0,0,0.45);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:500;transition:all .1s;}
+.nt-btn:hover{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.8);}
+.nt-sep{width:0.5px;height:14px;background:rgba(0,0,0,0.1);margin:0 2px;}
+.nt-select{font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid rgba(0,0,0,0.12);background:transparent;color:rgba(0,0,0,0.6);height:22px;cursor:pointer;}
+/* capture note toolbar */
+.cap-toolbar{display:flex;align-items:center;gap:2px;padding:5px 9px;border-bottom:0.5px solid rgba(0,0,0,0.05);flex-wrap:wrap;}
+.ct-btn{width:24px;height:24px;border-radius:4px;border:none;background:none;font-size:11px;color:rgba(0,0,0,0.45);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:500;transition:all .1s;}
+.ct-btn:hover{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.8);}
+.ct-sep{width:0.5px;height:14px;background:rgba(0,0,0,0.1);margin:0 2px;}
+.ct-select{font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid rgba(0,0,0,0.12);background:transparent;color:rgba(0,0,0,0.6);height:22px;cursor:pointer;}
+.cap-edit{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:#1a1a2e;padding:10px 13px 7px;min-height:60px;line-height:1.75;word-break:break-word;}
+.cap-edit:empty:before{content:attr(data-placeholder);color:rgba(0,0,0,0.25);pointer-events:none;}
 .card-tags{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
 .note-imgs{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
 .note-img-wrap{position:relative;}
@@ -311,19 +334,23 @@ body::before{
 .up-bar{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:3px;transition:width .25s ease;}
 .up-label{font-size:12px;color:rgba(0,0,0,0.55);}
 /* sync top bar */
-.sync-topbar{position:fixed;top:0;left:0;right:0;height:2px;z-index:999;pointer-events:none;opacity:0;transition:opacity .2s;}
-.sync-topbar.active{opacity:1;}
-.sync-topbar-track{height:100%;background:rgba(99,102,241,0.12);}
-.sync-topbar-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:0 1px 1px 0;transition:width .4s ease;width:0%;}
-.sync-topbar.done .sync-topbar-fill{background:#22c55e;}
-.sync-topbar.fade{opacity:0;transition:opacity .5s ease;}
+.sync-strip{height:0;overflow:hidden;border-bottom:0.5px solid transparent;display:flex;align-items:center;padding:0 22px;gap:10px;flex-shrink:0;transition:height .18s ease,opacity .18s ease;opacity:0;}
+.sync-strip.active{height:26px;opacity:1;border-bottom-color:rgba(99,102,241,0.12);}
+.sync-strip.done{height:26px;opacity:1;border-bottom-color:rgba(34,197,94,0.15);}
+.sync-strip.fade{height:0;opacity:0;}
+.sync-strip-label{font-size:11px;white-space:nowrap;min-width:56px;}
+.sync-strip-label.ing{color:#4338ca;}
+.sync-strip-label.ok{color:#15803d;}
+.sync-strip-label.err{color:#b91c1c;}
+.sync-strip-bar-wrap{flex:1;height:3px;background:rgba(99,102,241,0.12);border-radius:2px;overflow:hidden;}
+.sync-strip-bar{height:100%;border-radius:2px;transition:width .35s ease,background .2s;}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.2D</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.3</span></div>
     <div class="sb-stats">
       <div class="sb-stat"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -363,6 +390,7 @@ body::before{
       </div>
     </div>
   </div>
+  <div class="sync-strip" id="sync-strip"><span class="sync-strip-label" id="sync-strip-label">同步中…</span><div class="sync-strip-bar-wrap"><div class="sync-strip-bar" id="sync-strip-bar" style="width:0%"></div></div></div>
   <div id="capture-area"></div>
   <div class="stream" id="stream"></div>
 </div>
@@ -473,7 +501,7 @@ body::before{
   <div class="up-bar-wrap"><div class="up-bar" id="up-bar" style="width:0%"></div></div>
 </div>
 
-<div class="sync-topbar" id="sync-topbar"><div class="sync-topbar-track"><div class="sync-topbar-fill" id="sync-topbar-fill"></div></div></div>
+
 <div class="toast" id="toast"></div>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
@@ -585,26 +613,28 @@ function ghImgUrl(path){
 /* ── SYNC TOP BAR ── */
 let _topbarTimer=null;
 function syncBarStart(){
-  const bar=document.getElementById('sync-topbar');
-  const fill=document.getElementById('sync-topbar-fill');
-  if(!bar||!fill)return;
+  const strip=document.getElementById('sync-strip');
+  const bar=document.getElementById('sync-strip-bar');
+  const lbl=document.getElementById('sync-strip-label');
+  if(!strip)return;
   clearTimeout(_topbarTimer);
-  bar.className='sync-topbar active';
-  fill.style.width='0%';
-  /* animate to 80% while waiting */
-  requestAnimationFrame(()=>{fill.style.width='80%';});
+  strip.className='sync-strip active';
+  if(lbl){lbl.className='sync-strip-label ing';lbl.textContent='同步中…';}
+  if(bar){bar.style.background='#6366f1';bar.style.width='0%';requestAnimationFrame(()=>{bar.style.width='80%';});}
 }
 function syncBarDone(ok){
-  const bar=document.getElementById('sync-topbar');
-  const fill=document.getElementById('sync-topbar-fill');
-  if(!bar||!fill)return;
-  fill.style.transition='width .15s ease';
-  fill.style.width='100%';
-  fill.style.background=ok?'#22c55e':'#ef4444';
+  const strip=document.getElementById('sync-strip');
+  const bar=document.getElementById('sync-strip-bar');
+  const lbl=document.getElementById('sync-strip-label');
+  if(!strip)return;
+  if(bar){bar.style.width='100%';bar.style.background=ok?'#22c55e':'#ef4444';}
+  if(lbl){lbl.className='sync-strip-label '+(ok?'ok':'err');lbl.textContent=ok?'✓ 已保存':'✕ 同步失败';}
+  strip.className='sync-strip done';
   clearTimeout(_topbarTimer);
-  _topbarTimer=setTimeout(()=>{bar.classList.add('fade');
-    setTimeout(()=>{bar.className='sync-topbar';fill.style.width='0%';fill.style.background='';fill.style.transition='';},500);
-  },700);
+  _topbarTimer=setTimeout(()=>{
+    strip.classList.add('fade');
+    setTimeout(()=>{strip.className='sync-strip';if(bar)bar.style.width='0%';},300);
+  },1200);
 }
 
 function setSyncStatus(state,msg){
@@ -673,7 +703,7 @@ async function ghPushAll(){
       _dirty[name]=false;
       done++;
       const pct=20+Math.round((done/total)*75);
-      document.getElementById('sync-topbar-fill').style.width=pct+'%';
+      const _bar=document.getElementById('sync-strip-bar');if(_bar)_bar.style.width=pct+'%';
     }
     const t=new Date();
     setSyncStatus('ok','已同步 '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0'));
@@ -795,21 +825,66 @@ function renderAll(){render();renderSidebarTags();}
 /* ── CAPTURE: NOTES ── */
 function renderCaptureNote(cap){
   cap.innerHTML=`<div class="capture"><div class="cap-card">
-    <textarea class="cap-input" id="cap-note-ta" placeholder="现在的想法是...  ⌘V 粘贴截图" rows="2" style="display:block;"></textarea>
+    <div class="cap-toolbar">
+      <select class="ct-select" id="cap-heading-sel" onchange="capExecBlock(this.value);this.value='p'">
+        <option value="p">正文</option>
+        <option value="h1">标题 1</option>
+        <option value="h2">标题 2</option>
+        <option value="h3">标题 3</option>
+      </select>
+      <div class="ct-sep"></div>
+      <button class="ct-btn" onclick="capExec('bold')" title="加粗"><b>B</b></button>
+      <button class="ct-btn" onclick="capExec('italic')" title="斜体"><i>I</i></button>
+      <button class="ct-btn" onclick="capExec('underline')" title="下划线" style="text-decoration:underline">U</button>
+      <button class="ct-btn" onclick="capExec('strikeThrough')" title="删除线" style="text-decoration:line-through">S</button>
+      <div class="ct-sep"></div>
+      <button class="ct-btn" onclick="capHighlight('yellow')" title="高亮黄" style="background:#fef08a;color:#713f12;font-size:10px;">A</button>
+      <button class="ct-btn" onclick="capHighlight('green')" title="高亮绿" style="background:#bbf7d0;color:#14532d;font-size:10px;">A</button>
+      <div class="ct-sep"></div>
+      <button class="ct-btn" onclick="capExec('insertUnorderedList')" title="无序列表"><i class="ti ti-list" style="font-size:13px" aria-hidden="true"></i></button>
+      <button class="ct-btn" onclick="capExec('insertOrderedList')" title="有序列表"><i class="ti ti-list-numbers" style="font-size:13px" aria-hidden="true"></i></button>
+      <button class="ct-btn" onclick="capInsertBlock('blockquote')" title="引用"><i class="ti ti-blockquote" style="font-size:13px" aria-hidden="true"></i></button>
+      <button class="ct-btn" onclick="capInsertBlock('pre')" title="代码块"><i class="ti ti-code" style="font-size:13px" aria-hidden="true"></i></button>
+      <div class="ct-sep"></div>
+      <button class="ct-btn" onclick="openLinkModal('note-compose')" title="插入链接"><i class="ti ti-link" style="font-size:13px" aria-hidden="true"></i></button>
+      <button class="ct-btn" onclick="openTagModal('compose')" title="标签"><i class="ti ti-tag" style="font-size:13px" aria-hidden="true"></i></button>
+    </div>
+    <div class="cap-edit" id="cap-note-edit" contenteditable="true" data-placeholder="现在的想法是...  ⌘V 粘贴截图"></div>
     <div id="note-imgs-strip" class="cap-imgs-strip"></div>
     <div class="cap-bar">
-      <button class="cap-tag-btn" onclick="openTagModal('compose')"># 标签</button>
-      <button class="cap-tag-btn" onclick="openLinkModal('note-compose')" title="插入链接">🔗 链接</button>
       <span id="cap-tags-display" style="display:flex;gap:4px;flex-wrap:wrap"></span>
       <span class="cap-hint">⌘↩ 发送</span>
       <button class="cap-submit" onclick="addNote()">发送</button>
     </div></div></div>`;
-  const ta=document.getElementById('cap-note-ta');
-  if(ta){
-    ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)&&!e.isComposing)addNote();});
-    ta.addEventListener('paste',e=>handleImgPasteCompose(e,'note'));
+  const ed=document.getElementById('cap-note-edit');
+  if(ed){
+    ed.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)&&!e.isComposing)addNote();});
+    ed.addEventListener('paste',e=>{
+      const items=e.clipboardData&&e.clipboardData.items;
+      if(items){for(let i=0;i<items.length;i++){if(items[i].type.indexOf('image')!==-1){handleImgPasteCompose(e,'note');return;}}}
+    });
   }
   composePendingImgs=[];pendingSelTags=[];
+}
+function capExec(cmd){document.execCommand(cmd,false,null);}
+function capExecBlock(tag){document.execCommand('formatBlock',false,tag);}
+function capHighlight(color){
+  const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
+  const range=sel.getRangeAt(0);if(range.collapsed)return;
+  const mark=document.createElement('mark');
+  if(color==='green')mark.className='green';
+  range.surroundContents(mark);
+}
+function capInsertBlock(tag){
+  const ed=document.getElementById('cap-note-edit');if(!ed)return;
+  const el=document.createElement(tag);
+  el.textContent=tag==='pre'?'// 代码':'引用内容';
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount){
+    const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(el);
+    r.setStartAfter(el);r.collapse(true);sel.removeAllRanges();sel.addRange(r);
+  }else{ed.appendChild(el);}
+  el.focus();
 }
 
 /* ── CAPTURE: TODOS ── */
@@ -914,8 +989,10 @@ function confirmInsertLink(){
 
 /* ── ADD NOTE ── */
 async function addNote(){
-  const ta=document.getElementById('cap-note-ta');if(!ta)return;
-  const text=ta.value.trim();if(!text&&!composePendingImgs.length)return;
+  const ed=document.getElementById('cap-note-edit');if(!ed)return;
+  const html=ed.innerHTML.trim();
+  const textOnly=ed.textContent.trim();
+  if(!textOnly&&!composePendingImgs.length)return;
   const now=new Date();
   const time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
   const id=uid();
@@ -932,11 +1009,11 @@ async function addNote(){
       imgUrls=[...composePendingImgs];
     }
   }
-  notes.unshift({id,time,date:'今天',text:text||'（图片）',tags:[...pendingSelTags],images:imgUrls});
-  ta.value='';composePendingImgs=[];pendingSelTags=[];
-  renderImgsStrip('note-imgs-strip',[],  'note');
+  notes.unshift({id,time,date:'今天',html:html||'（图片）',text:textOnly||'（图片）',tags:[...pendingSelTags],images:imgUrls});
+  ed.innerHTML='';composePendingImgs=[];pendingSelTags=[];
+  renderImgsStrip('note-imgs-strip',[],'note');
   const disp=document.getElementById('cap-tags-display');if(disp)disp.innerHTML='';
-  save();render();
+  saveNotes();render();
 }
 
 /* ── ADD TODO ── */
@@ -965,8 +1042,9 @@ async function addTodo(){
 }
 
 /* ── NOTES RENDER ── */
+function noteBodyHTML(n){return n.html||renderRichText(n.text||'');}
 function renderNotes(s){
-  let list=notes.filter(n=>(!activeTag||n.tags.includes(activeTag))&&matchSearch(n.text,n.tags));
+  let list=notes.filter(n=>(!activeTag||n.tags.includes(activeTag))&&matchSearch(n.text||'',n.tags));
   if(!list.length){s.innerHTML='<div style="text-align:center;padding:60px 0;color:rgba(0,0,0,0.28);font-size:13px">暂无笔记</div>';return;}
   let byDate={};
   list.forEach(n=>{(byDate[n.date]=byDate[n.date]||[]).push(n);});
@@ -982,7 +1060,26 @@ function renderNotes(s){
           <button class="card-btn" onclick="deleteNote('${n.id}')" style="color:#ef4444">删除</button>
         </div>
       </div>
-      <div class="card-body" id="nb-${n.id}" ondblclick="editNote('${n.id}')" title="双击编辑">${renderRichText(n.text)}</div>
+      <div class="card-body" id="nb-${n.id}" ondblclick="editNote('${n.id}')" title="双击编辑">${noteBodyHTML(n)}</div>
+      <div class="note-toolbar" id="ntb-${n.id}">
+        <select class="nt-select" onchange="noteExecBlock('${n.id}',this.value);this.value='p'">
+          <option value="p">正文</option><option value="h1">标题1</option><option value="h2">标题2</option><option value="h3">标题3</option>
+        </select>
+        <div class="nt-sep"></div>
+        <button class="nt-btn" onclick="noteExec('${n.id}','bold')" title="加粗"><b>B</b></button>
+        <button class="nt-btn" onclick="noteExec('${n.id}','italic')" title="斜体"><i>I</i></button>
+        <button class="nt-btn" onclick="noteExec('${n.id}','underline')" title="下划线" style="text-decoration:underline">U</button>
+        <button class="nt-btn" onclick="noteExec('${n.id}','strikeThrough')" title="删除线" style="text-decoration:line-through">S</button>
+        <div class="nt-sep"></div>
+        <button class="nt-btn" onclick="noteHighlight('${n.id}','yellow')" style="background:#fef08a;color:#713f12;font-size:10px;" title="高亮黄">A</button>
+        <button class="nt-btn" onclick="noteHighlight('${n.id}','green')" style="background:#bbf7d0;color:#14532d;font-size:10px;" title="高亮绿">A</button>
+        <div class="nt-sep"></div>
+        <button class="nt-btn" onclick="noteExec('${n.id}','insertUnorderedList')" title="列表"><i class="ti ti-list" style="font-size:13px" aria-hidden="true"></i></button>
+        <button class="nt-btn" onclick="noteInsertBlock('${n.id}','blockquote')" title="引用"><i class="ti ti-blockquote" style="font-size:13px" aria-hidden="true"></i></button>
+        <button class="nt-btn" onclick="noteInsertBlock('${n.id}','pre')" title="代码块"><i class="ti ti-code" style="font-size:13px" aria-hidden="true"></i></button>
+        <div class="nt-sep"></div>
+        <button class="nt-btn" onclick="saveNoteEdit('${n.id}')" style="font-size:10px;color:#4338ca;padding:0 6px;width:auto;">保存</button>
+      </div>
       ${(n.images&&n.images.length)?`<div class="note-imgs">${n.images.map((img,i)=>`<div class="note-img-wrap"><img src="${img}" class="note-img" onclick="previewImg('${img}')" /><button class="note-img-del" onclick="deleteNoteImg('${n.id}',${i})">×</button></div>`).join('')}</div>`:''}
       ${n.tags.length?`<div class="card-tags">${n.tags.map(t=>`<span class="pill" style="color:${tagColor(t)}">${tagLabel(t)}</span>`).join('')}</div>`:''}
     </div>`).join('')
@@ -991,20 +1088,33 @@ function renderNotes(s){
 }
 function editNote(id){
   const el=document.getElementById('nb-'+id);if(!el)return;
-  /* show raw text for editing */
   const n=notes.find(x=>String(x.id)===String(id));if(!n)return;
-  el.textContent=n.text;
   el.contentEditable='true';el.focus();
-  const range=document.createRange();range.selectNodeContents(el);range.collapse(false);
-  window.getSelection().removeAllRanges();window.getSelection().addRange(range);
-  const saveAndStop=()=>{
-    el.contentEditable='false';
-    n.text=el.textContent.trim();
-    el.innerHTML=renderRichText(n.text);
-    saveLocal();schedulePush();
-  };
-  el.onblur=saveAndStop;
-  el.onkeydown=e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();saveAndStop();}};
+  const tb=document.getElementById('ntb-'+id);if(tb)tb.classList.add('show');
+  el.onblur=e=>{if(el.contains(e.relatedTarget)||document.getElementById('ntb-'+id)&&document.getElementById('ntb-'+id).contains(e.relatedTarget))return;};
+}
+function saveNoteEdit(id){
+  const el=document.getElementById('nb-'+id);if(!el)return;
+  const n=notes.find(x=>String(x.id)===String(id));if(!n)return;
+  n.html=el.innerHTML;n.text=el.textContent.trim();
+  el.contentEditable='false';
+  const tb=document.getElementById('ntb-'+id);if(tb)tb.classList.remove('show');
+  saveNotes();toast('已保存');
+}
+function noteExec(id,cmd){document.getElementById('nb-'+id)&&document.execCommand(cmd,false,null);}
+function noteExecBlock(id,tag){document.getElementById('nb-'+id)&&document.execCommand('formatBlock',false,tag);}
+function noteHighlight(id,color){
+  const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
+  const range=sel.getRangeAt(0);if(range.collapsed)return;
+  const mark=document.createElement('mark');if(color==='green')mark.className='green';
+  try{range.surroundContents(mark);}catch(e){}
+}
+function noteInsertBlock(id,tag){
+  const el=document.getElementById('nb-'+id);if(!el)return;
+  const block=document.createElement(tag);block.textContent=tag==='pre'?'// 代码':'引用内容';
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(block);}
+  else{el.appendChild(block);}
 }
 function deleteNote(id){
   if(!confirm('确认删除这条笔记？'))return;
@@ -1049,7 +1159,7 @@ function renderTodos(s){
   let html='<div class="todo-wrap">';
   if(!pending.length)html+='<div style="padding:14px 13px;font-size:12px;color:rgba(0,0,0,0.3)">今天的任务都完成了 🎉</div>';
   else html+=renderChainedTodos(pending);
-  html+=`<div class="add-todo-row" onclick="focusTodoCap()"><i class="ti ti-plus" style="font-size:13px" aria-hidden="true"></i> 新增待办</div></div>`;
+  html+=`</div>`;
   if(done.length){html+='<div class="sec-done">已完成</div><div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';}
   s.innerHTML=html;
 }
