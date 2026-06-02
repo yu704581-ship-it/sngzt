@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.2</title>
+<title>工作台 v2.2A</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -210,6 +210,17 @@ body::before{
 .todo-img{width:60px;height:60px;object-fit:cover;border-radius:5px;border:0.5px solid rgba(0,0,0,0.08);cursor:pointer;transition:opacity .1s;}
 .todo-img:hover{opacity:.82;}
 .todo-img-del{position:absolute;top:-5px;right:-5px;width:15px;height:15px;border-radius:50%;background:#ef4444;color:white;border:none;cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;}
+/* todo remark (备注) */
+.todo-remark-wrap{margin-top:5px;}
+.todo-remark-preview{font-size:11.5px;color:rgba(0,0,0,0.38);line-height:1.5;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:2px 0;}
+.todo-remark-preview:hover{color:rgba(0,0,0,0.6);}
+.todo-remark-preview.has-remark::before{content:'📝 ';font-size:10px;}
+.todo-remark-full{display:none;margin-top:4px;padding:7px 10px;background:rgba(0,0,0,0.03);border-radius:7px;border-left:2px solid rgba(99,102,241,0.25);}
+.todo-remark-full.open{display:block;}
+.todo-remark-ta{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:12px;color:rgba(0,0,0,0.65);line-height:1.65;resize:none;min-height:60px;}
+.todo-remark-bar{display:flex;justify-content:flex-end;gap:6px;margin-top:5px;}
+.remark-save-btn{font-size:11px;padding:3px 10px;border-radius:6px;background:#6366f1;color:white;border:none;cursor:pointer;font-family:inherit;}
+.remark-cancel-btn{font-size:11px;padding:3px 10px;border-radius:6px;background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.5);border:none;cursor:pointer;font-family:inherit;}
 
 /* ── EXPERIENCE ── */
 .exp-filter{display:flex;gap:5px;margin-bottom:11px;flex-wrap:wrap;}
@@ -305,7 +316,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.2</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.2A</span></div>
     <div class="sb-stats">
       <div class="sb-stat"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -354,6 +365,9 @@ body::before{
   <div class="modal">
     <h3>选择标签</h3>
     <div class="tag-grid" id="tag-modal-grid"></div>
+    <div style="margin-bottom:12px;">
+      <button onclick="closeModal('tag');openModal('tagmgr')" style="background:none;border:none;font-size:11px;color:#6366f1;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;text-underline-offset:2px;">+ 管理标签（新增 / 删除）</button>
+    </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('tag')">取消</button>
       <button class="btn-primary" onclick="confirmTags()">确定</button>
@@ -994,6 +1008,18 @@ function todoRowHTML(t){
   else if(isNext)badge='<span class="badge-next">轮到你了</span>';
   else if(t.locked)badge='<span class="badge-lock">等待前置</span>';
   const imgsHtml=(t.images&&t.images.length)?`<div class="todo-imgs">${t.images.map((img,i)=>`<div class="todo-img-wrap"><img src="${img}" class="todo-img" onclick="previewImg('${img}')" /><button class="todo-img-del" onclick="deleteTodoImg('${t.id}',${i})">×</button></div>`).join('')}</div>`:'';
+  const remark=t.remark||'';
+  const remarkFirstLine=remark.split('\n')[0]||'';
+  const remarkHtml=`<div class="todo-remark-wrap" id="rw-${t.id}">
+    <div class="todo-remark-preview${remark?' has-remark':''}" id="rp-${t.id}" onclick="toggleRemark('${t.id}')">${remark?esc(remarkFirstLine):'<span style="opacity:0.4;font-size:11px">点击添加备注…</span>'}</div>
+    <div class="todo-remark-full" id="rf-${t.id}">
+      <textarea class="todo-remark-ta" id="rta-${t.id}" placeholder="支持多行备注…" rows="3">${esc(remark)}</textarea>
+      <div class="todo-remark-bar">
+        <button class="remark-cancel-btn" onclick="closeRemark('${t.id}')">取消</button>
+        <button class="remark-save-btn" onclick="saveRemark('${t.id}')">保存</button>
+      </div>
+    </div>
+  </div>`;
   return`<div class="todo-row${t.pinned&&!t.done?' pinned':''}${isNext?' active-next':''}" id="tr-${t.id}">
     <div class="todo-circle${t.done?' done':t.locked?' locked':''}" onclick="${t.locked?`toast('需先完成前置任务')`:`toggleTodo('${t.id}')`}"></div>
     <div class="todo-body">
@@ -1004,6 +1030,7 @@ function todoRowHTML(t){
         ${badge}
       </div>
       ${imgsHtml}
+      ${remarkHtml}
     </div>
     <div class="todo-actions">
       ${!t.done&&!t.locked?`<button class="t-btn chain-btn" onclick="startChainAdd('${t.id}')">+ 接下一步</button>`:''}
@@ -1045,6 +1072,40 @@ function deleteTodo(id){
 function deleteTodoImg(todoId,idx){
   const t=todos.find(x=>String(x.id)===String(todoId));if(!t||!t.images)return;
   t.images.splice(idx,1);save();render();
+}
+function toggleRemark(id){
+  const full=document.getElementById('rf-'+id);
+  if(!full)return;
+  const isOpen=full.classList.contains('open');
+  if(isOpen){closeRemark(id);}
+  else{
+    full.classList.add('open');
+    const ta=document.getElementById('rta-'+id);
+    if(ta){ta.focus();ta.selectionStart=ta.selectionEnd=ta.value.length;}
+  }
+}
+function closeRemark(id){
+  const full=document.getElementById('rf-'+id);if(full)full.classList.remove('open');
+}
+function saveRemark(id){
+  const t=todos.find(x=>String(x.id)===String(id));if(!t)return;
+  const ta=document.getElementById('rta-'+id);if(!ta)return;
+  t.remark=ta.value.trim();
+  save();
+  /* update preview without full re-render */
+  const preview=document.getElementById('rp-'+id);
+  if(preview){
+    const firstLine=t.remark.split('\n')[0]||'';
+    if(t.remark){
+      preview.className='todo-remark-preview has-remark';
+      preview.innerHTML=esc(firstLine);
+    }else{
+      preview.className='todo-remark-preview';
+      preview.innerHTML='<span style="opacity:0.4;font-size:11px">点击添加备注…</span>';
+    }
+  }
+  closeRemark(id);
+  toast('备注已保存');
 }
 function startChainAdd(id){
   addingChainFor=id;render();
