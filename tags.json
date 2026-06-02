@@ -1,0 +1,32 @@
+[
+  {
+    "id": "auth",
+    "label": "#认证",
+    "color": "#0ea5e9"
+  },
+  {
+    "id": "arch",
+    "label": "#架构",
+    "color": "#8b5cf6"
+  },
+  {
+    "id": "db",
+    "label": "#数据库",
+    "color": "#f59e0b"
+  },
+  {
+    "id": "design",
+    "label": "#设计",
+    "color": "#10b981"
+  },
+  {
+    "id": "ops",
+    "label": "#运维",
+    "color": "#ef4444"
+  },
+  {
+    "id": "mgmt",
+    "label": "#管理",
+    "color": "#6366f1"
+  }
+]
