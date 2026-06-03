@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.7A</title>
+<title>工作台 v2.8</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -531,13 +531,34 @@ body::before{
 .pl-tag.selected.opt{background:rgba(34,197,94,0.08);color:#047857;border-color:rgba(34,197,94,0.2);}
 .pl-tag-add{font-size:10px;padding:3px 9px;border-radius:9px;border:0.5px dashed rgba(0,0,0,0.15);background:none;color:rgba(0,0,0,0.35);cursor:pointer;font-family:inherit;}
 .proj-create-modal{width:min(420px,92vw);}
+/* ── @ DATE PICKER ── */
+.at-popup{position:absolute;left:10px;top:calc(100% + 4px);background:rgba(255,255,255,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:0.5px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);width:252px;z-index:200;overflow:hidden;animation:slideUp .15s ease;}
+.at-quick{padding:7px 8px 5px;display:flex;flex-wrap:wrap;gap:3px;border-bottom:0.5px solid rgba(0,0,0,0.06);}
+.at-q{font-size:11px;padding:4px 10px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.1);background:rgba(0,0,0,0.03);color:rgba(0,0,0,0.55);cursor:pointer;transition:all .1s;font-family:inherit;}
+.at-q:hover{background:rgba(99,102,241,0.08);color:#4338ca;border-color:rgba(99,102,241,0.2);}
+.at-q.at-sel{background:rgba(99,102,241,0.1);color:#4338ca;border-color:rgba(99,102,241,0.25);font-weight:500;}
+.at-cal{padding:8px 10px 10px;}
+.at-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.at-cal-month{font-size:12px;font-weight:500;color:#1a1a2e;}
+.at-cal-arr{width:22px;height:22px;border-radius:6px;border:0.5px solid rgba(0,0,0,0.1);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(0,0,0,0.4);font-family:inherit;}
+.at-cal-arr:hover{background:rgba(0,0,0,0.05);}
+.at-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.at-cal-dow{font-size:9px;color:rgba(0,0,0,0.28);text-align:center;padding:2px 0 4px;}
+.at-cal-d{font-size:11px;text-align:center;padding:5px 2px;border-radius:6px;cursor:pointer;color:rgba(0,0,0,0.6);transition:background .1s;}
+.at-cal-d:hover:not(.at-cal-past):not(.at-cal-other){background:rgba(99,102,241,0.08);color:#4338ca;}
+.at-cal-d.at-cal-today{color:#4338ca;font-weight:600;}
+.at-cal-d.at-cal-sel{background:#6366f1;color:white!important;font-weight:500;border-radius:6px;}
+.at-cal-d.at-cal-other{color:rgba(0,0,0,0.18);cursor:default;}
+.at-cal-d.at-cal-past{color:rgba(0,0,0,0.18);cursor:default;}
+.cap-date-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:9px;background:rgba(99,102,241,0.1);color:#4338ca;border:0.5px solid rgba(99,102,241,0.2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.cap-date-badge:hover{background:rgba(99,102,241,0.16);}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.7A</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.8</span></div>
     <div class="sb-stats">
       <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -1275,7 +1296,21 @@ function switchMode(m){
   const projSb=document.getElementById('sb-proj-section');
   if(projSb)projSb.style.display=m==='proj'?'':'none';
   const projBtn=document.getElementById('proj-add-btn-wrap');
-  if(projBtn)projBtn.innerHTML=m==='proj'?'<span style="display:flex;gap:6px;"><button style="font-size:10px;padding:4px 11px;border-radius:8px;border:0.5px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.07);color:#4338ca;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;" onclick="openProjLogModal()"><i class="ti ti-versions" style="font-size:11px;" aria-hidden="true"></i>记录版本</button><button style="font-size:10px;padding:4px 11px;border-radius:8px;border:0.5px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.07);color:#92400e;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;" onclick="openThoughtModal()"><i class="ti ti-pencil" style="font-size:11px;" aria-hidden="true"></i>记录思路</button></span>':'';
+  if(projBtn){
+    if(m==='proj'){
+      const s=document.createElement('span');s.style.cssText='display:flex;gap:6px;';
+      const b1=document.createElement('button');
+      b1.style.cssText='font-size:10px;padding:4px 11px;border-radius:8px;border:0.5px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.07);color:#4338ca;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;';
+      b1.innerHTML='<i class="ti ti-versions" style="font-size:11px;" aria-hidden="true"></i>记录版本';
+      b1.onclick=()=>openProjLogModal();
+      const b2=document.createElement('button');
+      b2.style.cssText='font-size:10px;padding:4px 11px;border-radius:8px;border:0.5px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.07);color:#92400e;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;';
+      b2.innerHTML='<i class="ti ti-pencil" style="font-size:11px;" aria-hidden="true"></i>记录思路';
+      b2.onclick=()=>openThoughtModal();
+      s.appendChild(b1);s.appendChild(b2);
+      projBtn.innerHTML='';projBtn.appendChild(s);
+    }else{projBtn.innerHTML='';}
+  }
   renderSidebarTags();render();
 }
 function filterByTag(tagId){
@@ -1324,13 +1359,17 @@ function renderAll(){render();renderSidebarTags();renderHeatmap();}
 
 /* ── CAPTURE: UNIFIED ── */
 function renderCaptureUnified(cap){
-  cap.innerHTML=`<div class="capture"><div class="cap-card">
+  cap.innerHTML=`<div class="capture"><div class="cap-card" style="position:relative;">
     <div class="cap-mode-row">
       <button class="cap-mode-btn active-todo" id="cap-mode-todo" onclick="setCapMode('todo')" title="待办模式"><i class="ti ti-checkbox" style="font-size:14px;" aria-label="待办"></i></button>
       <button class="cap-mode-btn" id="cap-mode-note" onclick="setCapMode('note')" title="笔记模式"><i class="ti ti-notes" style="font-size:14px;" aria-label="笔记"></i></button>
       <span class="cap-mode-label todo" id="cap-mode-label">待办模式</span>
     </div>
-    <input class="cap-input" id="cap-todo-inp" placeholder="记一件事… 回车添加，⌘V 粘贴图片" />
+    <div style="display:flex;align-items:center;gap:6px;padding:0 13px;">
+      <input class="cap-input" id="cap-todo-inp" placeholder="记一件事… @ 选日期，回车添加" style="flex:1;padding-left:0;padding-right:0;" />
+      <span id="cap-date-badge" style="display:none;" class="cap-date-badge" onclick="openAtPicker()"></span>
+    </div>
+    <div id="at-popup-wrap"></div>
     <div id="todo-imgs-strip" class="cap-imgs-strip"></div>
     <div class="cap-bar" id="cap-todo-bar">
       <button class="cap-tag-btn" onclick="openTagModal('compose')"># 标签</button>
@@ -1349,7 +1388,19 @@ function renderCaptureUnified(cap){
   </div></div>`;
   const inp=document.getElementById('cap-todo-inp');
   if(inp){
-    inp.addEventListener('keyup',e=>{if(e.key==='Enter'&&!e.isComposing)addTodo();});
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.isComposing){e.preventDefault();addTodo();return;}
+      if(e.key==='Escape'){closeAtPicker();return;}
+    });
+    inp.addEventListener('input',e=>{
+      const v=inp.value;
+      const atIdx=v.lastIndexOf('@');
+      if(atIdx>=0){
+        inp.value=v.slice(0,atIdx)+v.slice(atIdx+1).replace('@','');
+        inp.value=v.slice(0,atIdx);
+        openAtPicker();
+      }
+    });
     inp.addEventListener('paste',e=>handleImgPasteCompose(e,'todo'));
   }
   const ed=document.getElementById('cap-note-edit');
@@ -1729,8 +1780,14 @@ async function addTodo(){
       imgUrls=[...todoPendingImgs];
     }
   }
-  todos.unshift({id,done:false,text:text||'（图片）',date:'今天',isoDate:todayISO(),tags:[...pendingSelTags],pinned:false,nextId:null,locked:false,images:imgUrls});
-  inp.value='';todoPendingImgs=[];pendingSelTags=[];
+  const useDate=_atDate||todayISO();
+  const _today=new Date();const _tk=_today.toISOString().slice(0,10);
+  const _tom=new Date(_today);_tom.setDate(_today.getDate()+1);const _tomK=_tom.toISOString().slice(0,10);
+  const _dd=new Date(useDate+'T00:00:00');
+  const dateLabel=useDate===_tk?'今天':useDate===_tomK?'明天':((_dd.getMonth()+1)+'/'+_dd.getDate());
+  todos.unshift({id,done:false,text:text||'（图片）',date:dateLabel,isoDate:useDate,tags:[...pendingSelTags],pinned:false,nextId:null,locked:false,images:imgUrls});
+  inp.value='';todoPendingImgs=[];pendingSelTags=[];_atDate=null;
+  const _badge=document.getElementById('cap-date-badge');if(_badge)_badge.style.display='none';
   renderImgsStrip('todo-imgs-strip',[],'todo');
   const disp=document.getElementById('cap-tags-display');if(disp)disp.innerHTML='';
   save();render();
@@ -2441,6 +2498,135 @@ function deleteProjLog(projId,logId){
   const proj=projects.find(p=>p.id===projId);if(!proj)return;
   proj.logs=(proj.logs||[]).filter(l=>l.id!==logId);
   saveProjects();render();toast('已删除');
+}
+/* ── @ DATE PICKER ── */
+let _atDate=null; /* selected date ISO string */
+let _atCalYear=new Date().getFullYear();
+let _atCalMonth=new Date().getMonth(); /* 0-based */
+let _atPickerOpen=false;
+
+function openAtPicker(){
+  _atPickerOpen=true;
+  _atCalYear=new Date().getFullYear();
+  _atCalMonth=new Date().getMonth();
+  renderAtPicker();
+}
+function closeAtPicker(){
+  _atPickerOpen=false;
+  const wrap=document.getElementById('at-popup-wrap');
+  if(wrap)wrap.innerHTML='';
+}
+function renderAtPicker(){
+  const wrap=document.getElementById('at-popup-wrap');
+  if(!wrap)return;
+  const today=new Date();
+  const tk=today.toISOString().slice(0,10);
+  const tom=new Date(today);tom.setDate(today.getDate()+1);
+  const tomK=tom.toISOString().slice(0,10);
+  /* this friday */
+  const fri=new Date(today);const dow=today.getDay()||7;
+  fri.setDate(today.getDate()+(5-dow+7)%7||(dow===5?7:0));
+  const friK=fri.toISOString().slice(0,10);
+  /* next monday */
+  const mon=new Date(today);mon.setDate(today.getDate()+(8-dow)%7||7);
+  const monK=mon.toISOString().slice(0,10);
+  /* next week monday */
+  const nwmon=new Date(mon);nwmon.setDate(mon.getDate()+7);
+  const nwmonK=nwmon.toISOString().slice(0,10);
+
+  const quicks=[
+    {label:'今天',iso:tk},
+    {label:'明天',iso:tomK},
+    {label:'本周五',iso:friK},
+    {label:'下周一',iso:monK},
+    {label:'下周',iso:nwmonK},
+  ];
+
+  /* calendar grid */
+  const y=_atCalYear,m=_atCalMonth;
+  const firstDay=new Date(y,m,1).getDay()||7; /* 1=Mon */
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const daysInPrev=new Date(y,m,0).getDate();
+  const todayISOs=new Date().toISOString().slice(0,10);
+
+  let calHtml='<div class="at-cal-grid">';
+  ['一','二','三','四','五','六','日'].forEach(d=>{
+    calHtml+=`<div class="at-cal-dow">${d}</div>`;
+  });
+  /* prev month padding */
+  for(let i=firstDay-1;i>0;i--){
+    calHtml+=`<div class="at-cal-d at-cal-other">${daysInPrev-i+1}</div>`;
+  }
+  for(let d=1;d<=daysInMonth;d++){
+    const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=iso===todayISOs;
+    const isSel=iso===_atDate;
+    const isPast=iso<todayISOs;
+    const cls='at-cal-d'+(isPast?' at-cal-past':'')+(isToday?' at-cal-today':'')+(isSel?' at-cal-sel':'');
+    calHtml+=`<div class="${cls}" data-iso="${iso}" onclick="selectAtDate('${iso}')">${d}</div>`;
+  }
+  /* fill remaining */
+  const total=Math.ceil((firstDay-1+daysInMonth)/7)*7;
+  for(let d=1;d<=total-(firstDay-1+daysInMonth);d++){
+    calHtml+=`<div class="at-cal-d at-cal-other">${d}</div>`;
+  }
+  calHtml+='</div>';
+
+  const monthName=y+'年'+(m+1)+'月';
+
+  wrap.innerHTML=`<div class="at-popup" id="at-popup">
+    <div class="at-quick">
+      ${quicks.map(q=>`<button class="at-q${_atDate===q.iso?' at-sel':''}" onclick="selectAtDate('${q.iso}')">${q.label}</button>`).join('')}
+    </div>
+    <div class="at-cal">
+      <div class="at-cal-nav">
+        <button class="at-cal-arr" onclick="atCalNav(-1)">‹</button>
+        <span class="at-cal-month">${monthName}</span>
+        <button class="at-cal-arr" onclick="atCalNav(1)">›</button>
+      </div>
+      ${calHtml}
+    </div>
+  </div>`;
+}
+function atCalNav(dir){
+  _atCalMonth+=dir;
+  if(_atCalMonth>11){_atCalMonth=0;_atCalYear++;}
+  if(_atCalMonth<0){_atCalMonth=11;_atCalYear--;}
+  renderAtPicker();
+}
+function selectAtDate(iso){
+  _atDate=iso;
+  closeAtPicker();
+  /* update badge */
+  const badge=document.getElementById('cap-date-badge');
+  if(badge){
+    const d=new Date(iso+'T00:00:00');
+    const tk=new Date().toISOString().slice(0,10);
+    const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
+    const label=iso===tk?'今天':iso===tomK?'明天':((d.getMonth()+1)+'/'+d.getDate());
+    badge.textContent='📅 '+label;
+    badge.style.display='inline-flex';
+    badge.onclick=()=>{_atDate=null;badge.style.display='none';};
+  }
+  /* focus back on input */
+  const inp=document.getElementById('cap-todo-inp');if(inp)inp.focus();
+}
+function openAtPicker(){
+  _atPickerOpen=true;
+  _atCalYear=new Date().getFullYear();
+  _atCalMonth=new Date().getMonth();
+  renderAtPicker();
+  /* close on outside click */
+  setTimeout(()=>{
+    document.addEventListener('click',function handler(e){
+      const popup=document.getElementById('at-popup');
+      const inp=document.getElementById('cap-todo-inp');
+      if(popup&&!popup.contains(e.target)&&e.target!==inp){
+        closeAtPicker();
+        document.removeEventListener('click',handler);
+      }
+    });
+  },50);
 }
 /* ── HEATMAP ── */
 /* ── HEATMAP FILTER STATE ── */
