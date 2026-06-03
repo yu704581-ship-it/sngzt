@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.5A</title>
+<title>工作台 v2.5B</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -432,7 +432,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.5A</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.5B</span></div>
     <div class="sb-stats">
       <div class="sb-stat"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -783,6 +783,38 @@ function saveTags(){saveLocal();_dirty.tags=true;schedulePush();}
 /* save() marks everything dirty — used when multiple datasets change at once */
 function save(){saveLocal();_dirty.notes=true;_dirty.todos=true;_dirty.experiences=true;_dirty.tags=true;schedulePush();}
 
+/* image blob cache for private repo */
+const _imgCache={};
+async function resolveImgUrl(rawUrl){
+  if(!rawUrl||rawUrl.startsWith('data:'))return rawUrl;
+  if(_imgCache[rawUrl])return _imgCache[rawUrl];
+  if(!ghConfigured())return rawUrl;
+  try{
+    const m=rawUrl.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.+)/);
+    if(!m)return rawUrl;
+    const c=ghCfg();
+    const apiUrl='https://api.github.com/repos/'+c.owner.trim()+'/'+c.repo.trim()+'/contents/'+m[1];
+    const resp=await fetch(apiUrl,{headers:ghHeaders()});
+    if(!resp.ok)return rawUrl;
+    const j=await resp.json();
+    if(!j.content)return rawUrl;
+    const blobUrl='data:image/jpeg;base64,'+j.content.replace(/\s/g,'');
+    _imgCache[rawUrl]=blobUrl;
+    return blobUrl;
+  }catch(e){return rawUrl;}
+}
+async function resolveAllImages(){
+  if(!ghConfigured())return;
+  const promises=[];
+  [...notes,...todos].forEach(item=>{
+    (item.images||[]).forEach((url,i)=>{
+      if(url&&url.startsWith('https://raw.')){
+        promises.push(resolveImgUrl(url).then(b=>{item.images[i]=b;}));
+      }
+    });
+  });
+  if(promises.length){await Promise.all(promises);render();}
+}
 /* ── GITHUB MULTI-FILE ── */
 function ghCfg(){try{return JSON.parse(localStorage.getItem('wb_gh')||'null');}catch(e){return null;}}
 function ghConfigured(){const c=ghCfg();return !!(c&&c.token&&c.owner&&c.repo);}
@@ -918,9 +950,19 @@ async function ghPullAll(){
     if(rtags&&Array.isArray(rtags))TAGS=rtags;
     /* if any file missing, push it */
     if(!rn||!rt||!re||!rtags)await ghPushAll();
-    saveLocal();renderAll();setSyncStatus('ok','已从云端加载');
+    saveLocal();renderAll();resolveAllImages();setSyncStatus('ok','已从云端加载');
   }catch(e){setSyncStatus('err','读取失败: '+e.message);}
-  finally{_pulling=false;}
+  finally{
+    _pulling=false;
+    const _fix=(arr)=>arr.forEach(item=>{
+      if(!item.isoDate&&item.id){
+        const ts=parseInt(String(item.id).slice(0,13));
+        if(!isNaN(ts)&&ts>1000000000000)item.isoDate=new Date(ts).toISOString().slice(0,10);
+      }
+    });
+    _fix(notes);_fix(todos);_fix(experiences);
+    renderHeatmap();
+  }
 }
 
 function schedulePush(){
@@ -1551,6 +1593,25 @@ function saveExpConclusion(){
   saveNotes();render();toast('结论已保存');
 }
 /* remark functions replaced by todo edit modal *//* remark functions replaced by todo edit modal */
+function toggleTodo(id){
+  const t=todos.find(x=>String(x.id)===String(id));if(!t||t.locked)return;
+  t.done=!t.done;t.date=t.done?'已完成':'今天';
+  if(t.done&&t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n){n.locked=false;toast('完成！下一步已解锁 →');}}
+  else if(t.done)toast('任务完成 ✓');
+  else{if(t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n)n.locked=true;}}
+  saveTodos();render();
+}
+function togglePin(id){const t=todos.find(x=>String(x.id)===String(id));if(!t)return;t.pinned=!t.pinned;saveTodos();render();toast(t.pinned?'已置顶 📌':'已取消置顶');}
+function deleteTodo(id){
+  todos.forEach(t=>{if(String(t.nextId)===String(id))t.nextId=null;});
+  todos=todos.filter(t=>String(t.id)!==String(id));
+  saveTodos();render();toast('待办已删除');
+}
+function deleteTodoImg(todoId,idx){
+  const t=todos.find(x=>String(x.id)===String(todoId));if(!t||!t.images)return;
+  t.images.splice(idx,1);saveTodos();render();
+}
+function focusTodoCap(){const inp=document.getElementById('cap-todo-inp');if(inp)inp.focus();}
 function startChainAdd(id){
   addingChainFor=id;render();
   setTimeout(()=>{
