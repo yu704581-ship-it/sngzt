@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.8</title>
+<title>工作台 v2.8A</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -470,6 +470,7 @@ body::before{
 .proj-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .proj-add-btn{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px;font-size:11px;color:rgba(0,0,0,0.3);cursor:pointer;border:none;background:none;font-family:inherit;width:100%;}
 .proj-add-btn:hover{color:#4338ca;background:rgba(99,102,241,0.06);}
+.proj-item:hover .proj-del-btn{opacity:1!important;}
 /* timeline */
 .tl-wrap{padding:14px 18px;overflow-y:auto;flex:1;}
 .tl-year-sep{font-size:9px;color:rgba(0,0,0,0.28);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
@@ -558,7 +559,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.8</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.8A</span></div>
     <div class="sb-stats">
       <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -2249,8 +2250,7 @@ function renderProj(s){
   if(!proj){s.innerHTML='';return;}
   _activeProject=proj.id;
   /* topbar add button */
-  const tb=document.getElementById('proj-add-btn-wrap');
-  if(tb)tb.innerHTML=`<button class="add-btn" style="font-size:11px;padding:4px 12px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.12);background:none;color:rgba(0,0,0,0.45);cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="openProjLogModal()"><i class="ti ti-plus" style="font-size:12px;" aria-hidden="true"></i>记录版本</button>`;
+  /* proj buttons set by switchMode */
   const logs=[...(proj.logs||[])].sort((a,b)=>b.isoDate.localeCompare(a.isoDate));
   if(!logs.length){
     s.innerHTML=`<div style="text-align:center;padding:60px 0;color:rgba(0,0,0,0.28);font-size:13px;">
@@ -2327,7 +2327,7 @@ function renderProj(s){
 }
 function renderProjSidebar(el){
   let html='<div class="proj-sb-label">项目</div>';
-  html+=projects.map(p=>`<div class="proj-item${p.id===_activeProject?' active':''}" onclick="selectProject('${p.id}')"><div class="proj-dot" style="background:${p.color||'#6366f1'};"></div>${esc(p.name)}</div>`).join('');
+  html+=projects.map(p=>`<div class="proj-item${p.id===_activeProject?' active':''}" onclick="selectProject('${p.id}')" style="position:relative;"><div class="proj-dot" style="background:${p.color||'#6366f1'};"></div><span style="flex:1;">${esc(p.name)}</span><span onclick="event.stopPropagation();deleteProject('${p.id}')" style="opacity:0;font-size:10px;color:rgba(239,68,68,0.6);padding:0 2px;transition:opacity .1s;" class="proj-del-btn">×</span></div>`).join('');
   html+=`<button class="proj-add-btn" onclick="openNewProjectModal()"><i class="ti ti-plus" style="font-size:11px;" aria-hidden="true"></i>新建项目</button>`;
   el.innerHTML=html;
 }
@@ -2356,6 +2356,12 @@ function confirmNewProject(){
   _activeProject=id;
   document.getElementById('modal-new-proj').classList.remove('open');
   saveProjects();render();toast('项目已创建');
+}
+function deleteProject(id){
+  if(!confirm('确认删除这个项目及其所有记录？'))return;
+  projects=projects.filter(p=>p.id!==id);
+  if(_activeProject===id)_activeProject=projects.length?projects[0].id:null;
+  saveProjects();render();toast('项目已删除');
 }
 /* proj log modal */
 function openProjLogModal(editId){
