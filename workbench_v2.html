@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.5B</title>
+<title>工作台 v2.6</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -73,6 +73,9 @@ body::before{
 .hm-qbtn{font-size:9px;padding:2px 7px;border-radius:9px;border:0.5px solid rgba(0,0,0,0.1);background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.45);cursor:pointer;font-family:inherit;transition:all .1s;}
 .hm-qbtn:hover{background:rgba(99,102,241,0.07);color:#4338ca;}
 .hm-qbtn.active{background:rgba(99,102,241,0.1);color:#4338ca;border-color:rgba(99,102,241,0.25);}
+.hm-qbtn.overdue-btn{color:rgba(220,38,38,0.7);border-color:rgba(220,38,38,0.15);}
+.hm-qbtn.overdue-btn:hover{background:rgba(220,38,38,0.06);color:#dc2626;}
+.hm-qbtn.overdue-btn.active{background:rgba(220,38,38,0.08);color:#dc2626;border-color:rgba(220,38,38,0.3);}
 /* todo edit date picker */
 .todo-date-field{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
 .todo-date-field label{font-size:11px;color:rgba(0,0,0,0.4);white-space:nowrap;}
@@ -189,7 +192,7 @@ body::before{
 .global-note-toolbar{display:none;align-items:center;gap:2px;padding:5px 22px;flex-wrap:wrap;background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:0.5px solid rgba(0,0,0,0.07);flex-shrink:0;}
 .global-note-toolbar.show{display:flex;}
 /* todo edit modal */
-.todo-edit-modal{width:720px;}
+.todo-edit-modal{width:min(860px,90vw);}
 .todo-edit-title{width:100%;border:none;border-bottom:1.5px solid #6366f1;outline:none;font-size:15px;font-weight:500;color:#1a1a2e;background:transparent;font-family:inherit;padding:4px 0 6px;margin-bottom:14px;}
 .todo-edit-remark{min-height:80px;max-height:260px;overflow-y:auto;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;font-size:13px;color:#1a1a2e;line-height:1.75;outline:none;word-break:break-word;background:rgba(255,255,255,0.7);}
 .todo-edit-remark:empty:before{content:"添加备注…";color:rgba(0,0,0,0.25);pointer-events:none;}
@@ -216,6 +219,15 @@ body::before{
 .ct-sep{width:0.5px;height:14px;background:rgba(0,0,0,0.1);margin:0 2px;}
 .ct-select{font-size:10px;padding:2px 4px;border-radius:4px;border:0.5px solid rgba(0,0,0,0.12);background:transparent;color:rgba(0,0,0,0.6);height:22px;cursor:pointer;}
 .cap-edit{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:#1a1a2e;padding:10px 13px 7px;min-height:60px;max-height:220px;overflow-y:auto;line-height:1.75;word-break:break-word;}
+/* unified input mode switch */
+.cap-mode-row{display:flex;align-items:center;gap:6px;padding:7px 11px 5px;border-bottom:0.5px solid rgba(0,0,0,0.05);}
+.cap-mode-btn{width:28px;height:28px;border-radius:8px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .12s;color:rgba(0,0,0,0.3);}
+.cap-mode-btn.active-todo{background:rgba(99,102,241,0.1);color:#4338ca;}
+.cap-mode-btn.active-note{background:rgba(14,165,233,0.1);color:#0369a1;}
+.cap-mode-btn:hover:not(.active-todo):not(.active-note){background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.55);}
+.cap-mode-label{font-size:11px;font-weight:500;color:rgba(0,0,0,0.35);}
+.cap-mode-label.todo{color:#4338ca;}
+.cap-mode-label.note{color:#0369a1;}
 .cap-edit:empty:before{content:attr(data-placeholder);color:rgba(0,0,0,0.25);pointer-events:none;}
 .card-tags{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
 .note-imgs{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
@@ -432,7 +444,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.5B</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.6</span></div>
     <div class="sb-stats">
       <div class="sb-stat"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -444,10 +456,13 @@ body::before{
     <div class="hm" id="heatmap"></div>
     <div class="hm-tip" id="hm-tip"></div>
     <div class="hm-quick">
-      <button class="hm-qbtn active" id="hmq-all" onclick="hmFilter('all')">全部</button>
-      <button class="hm-qbtn" id="hmq-today" onclick="hmFilter('today')">今天</button>
+      <button class="hm-qbtn overdue-btn" id="hmq-overdue" onclick="hmFilter('overdue')">逾期</button>
+      <button class="hm-qbtn active" id="hmq-today" onclick="hmFilter('today')">今天</button>
+      <button class="hm-qbtn" id="hmq-tomorrow" onclick="hmFilter('tomorrow')">明天</button>
       <button class="hm-qbtn" id="hmq-week" onclick="hmFilter('week')">本周</button>
-      <button class="hm-qbtn" id="hmq-overdue" onclick="hmFilter('overdue')">逾期</button>
+      <button class="hm-qbtn" id="hmq-nextweek" onclick="hmFilter('nextweek')">下周</button>
+      <button class="hm-qbtn" id="hmq-later" onclick="hmFilter('later')">更晚</button>
+      <button class="hm-qbtn" id="hmq-all" onclick="hmFilter('all')">全部</button>
     </div>
   </div>
   <div class="sb-div"></div>
@@ -783,6 +798,8 @@ function saveTags(){saveLocal();_dirty.tags=true;schedulePush();}
 /* save() marks everything dirty — used when multiple datasets change at once */
 function save(){saveLocal();_dirty.notes=true;_dirty.todos=true;_dirty.experiences=true;_dirty.tags=true;schedulePush();}
 
+function previewImg(src){document.getElementById('img-preview').src=src;document.getElementById('img-overlay').classList.add('open');}
+function closeImgPreview(){document.getElementById('img-overlay').classList.remove('open');}
 /* image blob cache for private repo */
 const _imgCache={};
 async function resolveImgUrl(rawUrl){
@@ -1045,14 +1062,80 @@ function matchSearch(text,tags){
   if(text.toLowerCase().includes(searchText))return true;
   return tags.some(t=>tagLabel(t).includes(searchText));
 }
+let capMode='todo'; /* 'todo' or 'note' */
+function setCapMode(m){
+  capMode=m;
+  /* update mode buttons */
+  const btnTodo=document.getElementById('cap-mode-todo');
+  const btnNote=document.getElementById('cap-mode-note');
+  const lbl=document.getElementById('cap-mode-label');
+  if(btnTodo)btnTodo.className='cap-mode-btn'+(m==='todo'?' active-todo':'');
+  if(btnNote)btnNote.className='cap-mode-btn'+(m==='note'?' active-note':'');
+  if(lbl){lbl.textContent=m==='todo'?'待办模式':'笔记模式';lbl.className='cap-mode-label '+m;}
+  /* swap placeholder and toolbar visibility */
+  const inp=document.getElementById('cap-todo-inp');
+  const edit=document.getElementById('cap-note-edit');
+  const noteBar=document.getElementById('cap-note-bar');
+  const todoBar=document.getElementById('cap-todo-bar');
+  const gntb=document.getElementById('global-note-toolbar');
+  if(inp)inp.style.display=m==='todo'?'':'none';
+  if(edit)edit.style.display=m==='note'?'':'none';
+  if(noteBar)noteBar.style.display=m==='note'?'flex':'none';
+  if(todoBar)todoBar.style.display=m==='todo'?'flex':'none';
+  if(gntb&&m==='todo'&&!_editingNoteId)gntb.classList.remove('show');
+}
 function render(){
   const s=document.getElementById('stream'),cap=document.getElementById('capture-area');
-  if(mode==='todos'){renderCaptureTodo(cap);renderTodos(s);}
-  else if(mode==='notes'){renderCaptureNote(cap);renderNotes(s);}
-  else{cap.innerHTML='';renderExp(s);}
+  renderCaptureUnified(cap);
+  if(mode==='todos')renderTodos(s);
+  else if(mode==='notes')renderNotes(s);
+  else{s.innerHTML='';renderExp(s);}
   updateCounts();
 }
 function renderAll(){render();renderSidebarTags();renderHeatmap();}
+
+/* ── CAPTURE: UNIFIED ── */
+function renderCaptureUnified(cap){
+  cap.innerHTML=`<div class="capture"><div class="cap-card">
+    <div class="cap-mode-row">
+      <button class="cap-mode-btn active-todo" id="cap-mode-todo" onclick="setCapMode('todo')" title="待办模式"><i class="ti ti-checkbox" style="font-size:14px;" aria-label="待办"></i></button>
+      <button class="cap-mode-btn" id="cap-mode-note" onclick="setCapMode('note')" title="笔记模式"><i class="ti ti-notes" style="font-size:14px;" aria-label="笔记"></i></button>
+      <span class="cap-mode-label todo" id="cap-mode-label">待办模式</span>
+    </div>
+    <input class="cap-input" id="cap-todo-inp" placeholder="记一件事… 回车添加，⌘V 粘贴图片" />
+    <div id="todo-imgs-strip" class="cap-imgs-strip"></div>
+    <div class="cap-bar" id="cap-todo-bar">
+      <button class="cap-tag-btn" onclick="openTagModal('compose')"># 标签</button>
+      <button class="cap-tag-btn" onclick="openLinkModal('todo-compose')" title="插入链接">🔗 链接</button>
+      <span id="cap-tags-display" style="display:flex;gap:4px;flex-wrap:wrap"></span>
+      <span class="cap-hint">回车发送</span>
+      <button class="cap-submit" onclick="addTodo()">添加</button>
+    </div>
+    <div id="cap-note-edit" class="cap-edit" contenteditable="true" data-placeholder="现在的想法是…  ⌘V 粘贴截图" style="display:none;"></div>
+    <div id="note-imgs-strip" class="cap-imgs-strip"></div>
+    <div class="cap-bar" id="cap-note-bar" style="display:none;">
+      <span id="cap-tags-display-note" style="display:flex;gap:4px;flex-wrap:wrap"></span>
+      <span class="cap-hint">⌘↩ 发送</span>
+      <button class="cap-submit" style="background:#0ea5e9;" onclick="addNote()">发送</button>
+    </div>
+  </div></div>`;
+  const inp=document.getElementById('cap-todo-inp');
+  if(inp){
+    inp.addEventListener('keyup',e=>{if(e.key==='Enter'&&!e.isComposing)addTodo();});
+    inp.addEventListener('paste',e=>handleImgPasteCompose(e,'todo'));
+  }
+  const ed=document.getElementById('cap-note-edit');
+  if(ed){
+    ed.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)&&!e.isComposing)addNote();});
+    ed.addEventListener('paste',e=>{
+      const items=e.clipboardData&&e.clipboardData.items;
+      if(items){for(let i=0;i<items.length;i++){if(items[i].type.indexOf('image')!==-1){handleImgPasteCompose(e,'note');return;}}}
+    });
+  }
+  /* restore capMode state */
+  if(capMode==='note')setCapMode('note');
+  composePendingImgs=[];todoPendingImgs=[];pendingSelTags=[];
+}
 
 /* ── CAPTURE: NOTES ── */
 function renderCaptureNote(cap){
@@ -1262,26 +1345,26 @@ async function addNote(){
   notes.unshift({id,time,date:'今天',isoDate:todayISO(),html:html||'（图片）',text:textOnly||'（图片）',tags:[...pendingSelTags],images:imgUrls});
   ed.innerHTML='';composePendingImgs=[];pendingSelTags=[];
   renderImgsStrip('note-imgs-strip',[],'note');
-  const disp=document.getElementById('cap-tags-display');if(disp)disp.innerHTML='';
+  const disp=document.getElementById('cap-tags-display-note')||document.getElementById('cap-tags-display');if(disp)disp.innerHTML='';
   saveNotes();render();
 }
 
 /* ── ADD TODO ── */
+function weekBounds(off){
+  const d=new Date(),dow=d.getDay()||7;
+  const mon=new Date(d);mon.setDate(d.getDate()-dow+1+off*7);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  return[mon.toISOString().slice(0,10),sun.toISOString().slice(0,10)];
+}
 function applyTodoDateFilter(list){
   const tk=todayKey();
-  if(_hmSelectedDate){
-    return list.filter(t=>t.isoDate===_hmSelectedDate);
-  }
-  const qf=window._hmQuickFilter;
-  if(qf==='today') return list.filter(t=>t.isoDate===tk);
-  if(qf==='week'){
-    const d=new Date();const dow=d.getDay()||7;
-    const mon=new Date(d);mon.setDate(d.getDate()-dow+1);
-    const monK=mon.toISOString().slice(0,10);
-    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
-    const sunK=sun.toISOString().slice(0,10);
-    return list.filter(t=>t.isoDate&&t.isoDate>=monK&&t.isoDate<=sunK);
-  }
+  const qf=window._hmQuickFilter||'today';
+  const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
+  if(qf==='today') return list.filter(t=>!t.isoDate||t.isoDate===tk);
+  if(qf==='tomorrow') return list.filter(t=>t.isoDate===tomK);
+  if(qf==='week'){const[mon,sun]=weekBounds(0);return list.filter(t=>t.isoDate&&t.isoDate>=mon&&t.isoDate<=sun);}
+  if(qf==='nextweek'){const[mon,sun]=weekBounds(1);return list.filter(t=>t.isoDate&&t.isoDate>=mon&&t.isoDate<=sun);}
+  if(qf==='later'){const[,sun]=weekBounds(1);return list.filter(t=>t.isoDate&&t.isoDate>sun);}
   if(qf==='overdue') return list.filter(t=>t.isoDate&&t.isoDate<tk&&!t.done);
   return list;
 }
@@ -1290,9 +1373,9 @@ function renderTodos(s){
   let pending=applyTodoDateFilter(base.filter(t=>!t.done));
   let done=applyTodoDateFilter(base.filter(t=>t.done));
   pending.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-  const isFiltered=!!(_hmSelectedDate||window._hmQuickFilter);
+  const qfLabel={'today':'今天','tomorrow':'明天','week':'本周','nextweek':'下周','later':'更晚','overdue':'逾期','all':'全部'}[window._hmQuickFilter||'today']||'今天';
   let html='<div class="todo-wrap">';
-  if(!pending.length)html+='<div style="padding:14px 13px;font-size:12px;color:rgba(0,0,0,0.3)">'+(isFiltered?'该日期没有待办任务':'今天的任务都完成了 🎉')+'</div>';
+  if(!pending.length)html+='<div style="padding:14px 13px;font-size:12px;color:rgba(0,0,0,0.3)">'+qfLabel+'没有待办任务 🎉</div>';
   else html+=renderChainedTodos(pending);
   html+=`</div>`;
   if(done.length){html+='<div class="sec-done">已完成</div><div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';}
@@ -1416,7 +1499,11 @@ async function addTodo(){
 function noteBodyHTML(n){return n.html||renderRichText(n.text||'');}
 function renderNotes(s){
   let list=notes.filter(n=>(!activeTag||n.tags.includes(activeTag))&&matchSearch(n.text||'',n.tags));
-  if(!list.length){s.innerHTML='<div style="text-align:center;padding:60px 0;color:rgba(0,0,0,0.28);font-size:13px">暂无笔记</div>';return;}
+  if(_noteFilterDate)list=list.filter(n=>n.isoDate===_noteFilterDate);
+  if(!list.length){
+    const msg=_noteFilterDate?formatHMDate(_noteFilterDate)+'没有笔记':'暂无笔记';
+    s.innerHTML='<div style="text-align:center;padding:60px 0;color:rgba(0,0,0,0.28);font-size:13px">'+msg+'</div>';return;
+  }
   let byDate={};
   list.forEach(n=>{(byDate[n.date]=byDate[n.date]||[]).push(n);});
   s.innerHTML=Object.entries(byDate).map(([date,ns])=>
@@ -1769,6 +1856,7 @@ function updateCounts(){
 /* ── HEATMAP ── */
 /* ── HEATMAP FILTER STATE ── */
 let _hmSelectedDate=null;
+let _noteFilterDate=null;
 
 function todayKey(){return new Date().toISOString().slice(0,10);}
 function isoToDate(s){return new Date(s+'T00:00:00');}
@@ -1824,27 +1912,29 @@ function formatHMDate(k){
 
 function hmSelectDate(key){
   _hmSelectedDate=key;
-  document.querySelectorAll('.hm-qbtn').forEach(b=>b.classList.remove('active'));
+  _noteFilterDate=key;
   renderHeatmap();
   const tip=document.getElementById('hm-tip');
   if(tip)tip.textContent=formatHMDate(key)+' 筛选中';
+  /* switch to notes and filter */
+  switchMode('notes');
   const badge=document.getElementById('date-filter-badge');
   if(badge){badge.textContent='📅 '+formatHMDate(key)+' ×';badge.classList.add('show');}
-  if(mode==='todos')renderTodos(document.getElementById('stream'));
 }
 
 function hmFilter(type){
   _hmSelectedDate=null;
+  _noteFilterDate=null;
   document.querySelectorAll('.hm-qbtn').forEach(b=>b.classList.remove('active'));
   const btn=document.getElementById('hmq-'+type);if(btn)btn.classList.add('active');
   const badge=document.getElementById('date-filter-badge');
   const tip=document.getElementById('hm-tip');
   if(badge)badge.classList.remove('show');
   if(tip)tip.textContent='';
-  /* store quick filter */
-  window._hmQuickFilter=type==='all'?null:type;
+  window._hmQuickFilter=type;
   renderHeatmap();
   if(mode==='todos')renderTodos(document.getElementById('stream'));
+  else if(mode==='notes')renderNotes(document.getElementById('stream'));
 }
 
 /* ── KEYBOARD ── */
@@ -1935,6 +2025,7 @@ document.addEventListener('keydown',function(e){
 },true);
 
 /* ── INIT ── */
+window._hmQuickFilter='today';
 loadLocal();
 if(ghConfigured()){setSyncStatus('ing','连接中…');ghPullAll().then(()=>renderAll());}
 else{
