@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.6A</title>
+<title>工作台 v2.7</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -194,7 +194,7 @@ body::before{
 .global-note-toolbar{display:none;align-items:center;gap:2px;padding:5px 22px;flex-wrap:wrap;background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:0.5px solid rgba(0,0,0,0.07);flex-shrink:0;}
 .global-note-toolbar.show{display:flex;}
 /* todo edit modal */
-.todo-edit-modal{width:min(860px,90vw);}
+.todo-edit-modal{width:min(760px,92vw);}
 .todo-edit-title{width:100%;border:none;border-bottom:1.5px solid #6366f1;outline:none;font-size:15px;font-weight:500;color:#1a1a2e;background:transparent;font-family:inherit;padding:4px 0 6px;margin-bottom:14px;}
 .todo-edit-remark{min-height:120px;max-height:360px;overflow-y:auto;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;font-size:13px;color:#1a1a2e;line-height:1.75;outline:none;word-break:break-word;background:rgba(255,255,255,0.7);}
 .todo-edit-remark:empty:before{content:"添加备注…";color:rgba(0,0,0,0.25);pointer-events:none;}
@@ -358,7 +358,7 @@ body::before{
 /* ── MODALS ── */
 .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;animation:fadeIn .15s ease;}
 .modal-overlay.open{display:flex;}
-.modal{background:rgba(255,255,255,0.88);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-radius:16px;border:0.5px solid rgba(255,255,255,0.95);padding:22px;width:340px;box-shadow:0 20px 60px rgba(0,0,0,0.15),0 4px 12px rgba(0,0,0,0.08);animation:slideUp .22s cubic-bezier(.34,1.56,.64,1);}
+.modal{background:rgba(255,255,255,0.88);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-radius:16px;border:0.5px solid rgba(255,255,255,0.95);padding:22px;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.15),0 4px 12px rgba(0,0,0,0.08);animation:slideUp .22s cubic-bezier(.34,1.56,.64,1);}
 .modal h3{font-size:14px;font-weight:700;margin-bottom:14px;color:#1a1a2e;}
 .modal-sub{font-size:11px;color:rgba(0,0,0,0.45);margin-bottom:16px;line-height:1.6;}
 .field{margin-bottom:12px;}
@@ -461,13 +461,65 @@ body::before{
 .sync-strip-label.err{color:#b91c1c;}
 .sync-strip-bar-wrap{flex:1;height:3px;background:rgba(99,102,241,0.12);border-radius:2px;overflow:hidden;}
 .sync-strip-bar{height:100%;border-radius:2px;transition:width .35s ease,background .2s;}
+/* ── PROJECT LOG ── */
+.proj-sb-section{padding:8px 10px 4px;}
+.proj-sb-label{font-size:9px;color:rgba(0,0,0,0.28);letter-spacing:.07em;text-transform:uppercase;padding:0 4px 5px;}
+.proj-item{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;font-size:12px;color:rgba(0,0,0,0.45);cursor:pointer;margin-bottom:1px;transition:background .1s;}
+.proj-item:hover{background:rgba(0,0,0,0.04);}
+.proj-item.active{background:rgba(255,255,255,0.72);color:#1a1a2e;font-weight:500;border:0.5px solid rgba(0,0,0,0.07);}
+.proj-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.proj-add-btn{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px;font-size:11px;color:rgba(0,0,0,0.3);cursor:pointer;border:none;background:none;font-family:inherit;width:100%;}
+.proj-add-btn:hover{color:#4338ca;background:rgba(99,102,241,0.06);}
+/* timeline */
+.tl-wrap{padding:14px 18px;overflow-y:auto;flex:1;}
+.tl-year-sep{font-size:9px;color:rgba(0,0,0,0.28);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.tl-year-sep::after{content:'';flex:1;height:0.5px;background:rgba(0,0,0,0.07);}
+.tl-entry{display:flex;gap:10px;margin-bottom:12px;}
+.tl-spine{display:flex;flex-direction:column;align-items:center;width:22px;flex-shrink:0;}
+.tl-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.tl-dot.feat{background:#6366f1;}
+.tl-dot.fix{background:#ef4444;}
+.tl-dot.opt{background:#22c55e;}
+.tl-dot.mix{background:rgba(0,0,0,0.25);}
+.tl-spine-line{width:1px;flex:1;background:rgba(0,0,0,0.07);margin-top:3px;}
+.tl-card{flex:1;background:rgba(255,255,255,0.62);border:0.5px solid rgba(255,255,255,0.88);border-radius:10px;padding:10px 12px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+.tl-card-head{display:flex;align-items:flex-start;margin-bottom:6px;}
+.tl-ver{font-size:13px;font-weight:500;color:#1a1a2e;flex:1;}
+.tl-time{font-size:9.5px;color:rgba(0,0,0,0.3);white-space:nowrap;margin-top:1px;}
+.tl-badges{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:7px;}
+.tl-badge{font-size:9px;padding:1px 7px;border-radius:9px;cursor:pointer;border:0.5px solid;}
+.tl-badge.feat{background:rgba(99,102,241,0.08);color:#4338ca;border-color:rgba(99,102,241,0.2);}
+.tl-badge.fix{background:rgba(239,68,68,0.08);color:#dc2626;border-color:rgba(239,68,68,0.2);}
+.tl-badge.opt{background:rgba(34,197,94,0.08);color:#047857;border-color:rgba(34,197,94,0.2);}
+.tl-badge.custom{background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.5);border-color:rgba(0,0,0,0.1);}
+.tl-points{font-size:12px;color:rgba(0,0,0,0.65);line-height:1.7;}
+.tl-point-row{display:flex;gap:5px;}
+.tl-bullet{color:rgba(0,0,0,0.25);flex-shrink:0;}
+.tl-card-actions{display:flex;gap:5px;margin-top:7px;}
+.tl-act-btn{font-size:10px;padding:2px 8px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.1);background:none;color:rgba(0,0,0,0.38);cursor:pointer;font-family:inherit;}
+.tl-act-btn:hover{background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.6);}
+.tl-act-btn.del{color:rgba(239,68,68,0.6);}
+.tl-act-btn.del:hover{background:rgba(239,68,68,0.06);color:#dc2626;}
+/* proj log modal */
+.proj-log-modal{width:min(580px,92vw);}
+.pl-field{margin-bottom:14px;}
+.pl-label{font-size:11px;color:rgba(0,0,0,0.4);margin-bottom:5px;}
+.pl-inp{width:100%;border:none;border-bottom:1.5px solid #6366f1;outline:none;font-size:14px;font-weight:500;color:#1a1a2e;background:transparent;font-family:inherit;padding:4px 0 6px;}
+.pl-textarea{width:100%;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:9px 11px;font-size:13px;color:#1a1a2e;background:rgba(255,255,255,0.7);font-family:inherit;outline:none;resize:vertical;min-height:80px;line-height:1.65;}
+.pl-tag-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.pl-tag{font-size:10px;padding:3px 9px;border-radius:9px;border:0.5px solid rgba(0,0,0,0.12);background:rgba(0,0,0,0.03);color:rgba(0,0,0,0.5);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.pl-tag.selected.feat{background:rgba(99,102,241,0.1);color:#4338ca;border-color:rgba(99,102,241,0.25);}
+.pl-tag.selected.fix{background:rgba(239,68,68,0.08);color:#dc2626;border-color:rgba(239,68,68,0.2);}
+.pl-tag.selected.opt{background:rgba(34,197,94,0.08);color:#047857;border-color:rgba(34,197,94,0.2);}
+.pl-tag-add{font-size:10px;padding:3px 9px;border-radius:9px;border:0.5px dashed rgba(0,0,0,0.15);background:none;color:rgba(0,0,0,0.35);cursor:pointer;font-family:inherit;}
+.proj-create-modal{width:min(420px,92vw);}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.6A</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.7</span></div>
     <div class="sb-stats">
       <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -493,7 +545,10 @@ body::before{
     <div class="nav-item active" data-mode="todos" onclick="switchMode('todos')"><i class="ti ti-checkbox" aria-hidden="true"></i>待办任务</div>
     <div class="nav-item" data-mode="notes" onclick="switchMode('notes')"><i class="ti ti-notes" aria-hidden="true"></i>全部笔记</div>
     <div class="nav-item" data-mode="exp" onclick="switchMode('exp')"><i class="ti ti-star" aria-hidden="true"></i>经验</div>
+    <div class="nav-item" data-mode="proj" onclick="switchMode('proj')"><i class="ti ti-versions" aria-hidden="true"></i>项目日志</div>
   </div>
+  <div class="sb-div"></div>
+  <div class="proj-sb-section" id="sb-proj-section" style="display:none;"></div>
   <div class="sb-div"></div>
   <div class="sb-sec-lbl">标签 <button onclick="openModal('tagmgr')">+ 管理</button></div>
   <div style="padding:2px 7px 8px" id="tag-list"></div>
@@ -524,7 +579,7 @@ body::before{
     </div>
   </div>
   <div class="topbar">
-    <span class="topbar-title" id="main-title">待办任务</span><span class="date-filter-badge" id="date-filter-badge" onclick="hmFilter('all')">× 清除</span>
+    <span class="topbar-title" id="main-title">待办任务</span><span class="date-filter-badge" id="date-filter-badge" onclick="hmFilter('all')">× 清除</span><span id="proj-add-btn-wrap" style="margin-left:6px;"></span>
     <div class="topbar-right">
       <button class="batch-btn" id="batch-btn" style="display:none" onclick="openModal('batch')">批量改期</button>
       <div class="search-wrap">
@@ -645,6 +700,64 @@ body::before{
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('modal-exp-conclusion').classList.remove('open')">取消</button>
       <button class="btn-primary" onclick="saveExpConclusion()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT LOG MODAL -->
+<div class="modal-overlay" id="modal-proj-log" onclick="if(event.target===this)closeProjLogModal()">
+  <div class="modal proj-log-modal">
+    <h3 id="pl-modal-title">记录版本</h3>
+    <div class="pl-field">
+      <div class="pl-label">版本号（如 v1.36 → v1.37）</div>
+      <input class="pl-inp" id="pl-ver" placeholder="v1.36 → v1.37" />
+    </div>
+    <div class="pl-field">
+      <div class="pl-label">类型标签</div>
+      <div class="pl-tag-row" id="pl-tag-row">
+        <span class="pl-tag feat" data-type="feat" onclick="togglePlTag(this)"><i class="ti ti-plus" style="font-size:9px;" aria-hidden="true"></i>新功能</span>
+        <span class="pl-tag fix" data-type="fix" onclick="togglePlTag(this)"><i class="ti ti-plus" style="font-size:9px;" aria-hidden="true"></i>bug修复</span>
+        <span class="pl-tag opt" data-type="opt" onclick="togglePlTag(this)"><i class="ti ti-plus" style="font-size:9px;" aria-hidden="true"></i>优化</span>
+        <button class="pl-tag-add" onclick="addCustomPlTag()">+ 自定义</button>
+      </div>
+    </div>
+    <div class="pl-field">
+      <div class="pl-label">改动要点（每行一条）</div>
+      <textarea class="pl-textarea" id="pl-points" placeholder="新增全局搜索功能&#10;修复图片加载 404 问题&#10;优化热力图按周排列"></textarea>
+    </div>
+    <div class="pl-field">
+      <div class="pl-label">备注（可选）</div>
+      <textarea class="pl-textarea" id="pl-detail" placeholder="详细说明、背景信息…" style="min-height:56px;"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeProjLogModal()">取消</button>
+      <button class="btn-primary" onclick="confirmProjLog()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW PROJECT MODAL -->
+<div class="modal-overlay" id="modal-new-proj" onclick="if(event.target===this)document.getElementById('modal-new-proj').classList.remove('open')">
+  <div class="modal proj-create-modal">
+    <h3>新建项目</h3>
+    <div class="pl-field">
+      <div class="pl-label">项目名称</div>
+      <input class="pl-inp" id="np-name" placeholder="如：质量看板" />
+    </div>
+    <div class="pl-field">
+      <div class="pl-label">颜色</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="np-color-row">
+        <div class="proj-dot" style="width:20px;height:20px;background:#6366f1;border-radius:50%;cursor:pointer;border:2px solid #6366f1;" data-color="#6366f1" onclick="selectNpColor(this)"></div>
+        <div class="proj-dot" style="width:20px;height:20px;background:#0ea5e9;border-radius:50%;cursor:pointer;" data-color="#0ea5e9" onclick="selectNpColor(this)"></div>
+        <div class="proj-dot" style="width:20px;height:20px;background:#22c55e;border-radius:50%;cursor:pointer;" data-color="#22c55e" onclick="selectNpColor(this)"></div>
+        <div class="proj-dot" style="width:20px;height:20px;background:#f59e0b;border-radius:50%;cursor:pointer;" data-color="#f59e0b" onclick="selectNpColor(this)"></div>
+        <div class="proj-dot" style="width:20px;height:20px;background:#ef4444;border-radius:50%;cursor:pointer;" data-color="#ef4444" onclick="selectNpColor(this)"></div>
+        <div class="proj-dot" style="width:20px;height:20px;background:#8b5cf6;border-radius:50%;cursor:pointer;" data-color="#8b5cf6" onclick="selectNpColor(this)"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('modal-new-proj').classList.remove('open')">取消</button>
+      <button class="btn-primary" onclick="confirmNewProject()">创建</button>
     </div>
   </div>
 </div>
@@ -789,11 +902,16 @@ let _syncTimer=null;
 let _pulling=false;
 let _pushing=false;
 /* dirty flags — only push files that actually changed */
-let _dirty={notes:false,todos:false,experiences:false,tags:false};
+let _dirty={notes:false,todos:false,experiences:false,tags:false,projects:false};
 
 let notes=[];
 let todos=[];
 let experiences=[];
+let projects=[]; /* [{id,name,color,logs:[{id,ver,tags,points,detail,isoDate,time}]}] */
+let _activeProject=null; /* id of selected project */
+let _editLogId=null; /* id of log entry being edited */
+let _plSelectedTags=[]; /* tags selected in proj log modal */
+let _npColor='#6366f1'; /* color for new project */
 
 let mode='todos',activeTag=null,expFilter='all',searchText='';
 let pendingTagTarget=null,pendingSelTags=[];
@@ -840,14 +958,17 @@ function loadLocal(){
       if(d.todos)todos=d.todos;
       if(d.experiences)experiences=d.experiences;
       if(d.tags)TAGS=d.tags;
+      if(d.projects)projects=d.projects;
     }
   }catch(e){}
+  if(projects.length&&!_activeProject)_activeProject=projects[0].id;
 }
 function saveLocal(){
-  localStorage.setItem('wb_v22',JSON.stringify({notes,todos,experiences,tags:TAGS}));
+  localStorage.setItem('wb_v22',JSON.stringify({notes,todos,experiences,tags:TAGS,projects}));
 }
 /* granular save — mark only the changed dataset dirty */
 function saveNotes(){saveLocal();_dirty.notes=true;schedulePush();}
+function saveProjects(){saveLocal();_dirty.projects=true;schedulePush();}
 function saveTodos(){saveLocal();_dirty.todos=true;schedulePush();}
 function saveExp(){saveLocal();_dirty.experiences=true;schedulePush();}
 function saveTags(){saveLocal();_dirty.tags=true;schedulePush();}
@@ -988,7 +1109,7 @@ async function ghPushAll(){
   _pushing=true;
   syncBarStart();
   setSyncStatus('ing','同步中…');
-  const dataMap={notes,todos,experiences,tags:TAGS};
+  const dataMap={notes,todos,experiences,tags:TAGS,projects};
   const total=toSync.length;
   let done=0;
   try{
@@ -1014,11 +1135,12 @@ async function ghPullAll(){
   _pulling=true;
   setSyncStatus('ing','加载中…');
   try{
-    const [rn,rt,re,rtags]=await Promise.all([
-      ghPullFile('notes'),ghPullFile('todos'),ghPullFile('experiences'),ghPullFile('tags')
+    const [rn,rt,re,rtags,rproj]=await Promise.all([
+      ghPullFile('notes'),ghPullFile('todos'),ghPullFile('experiences'),ghPullFile('tags'),ghPullFile('projects')
     ]);
     if(rn)notes=rn;
     if(rt)todos=rt;
+    if(rproj)projects=rproj;
     if(re)experiences=re;
     if(rtags&&Array.isArray(rtags))TAGS=rtags;
     /* if any file missing, push it */
@@ -1104,8 +1226,12 @@ function renderRichText(text){
 function switchMode(m){
   mode=m;activeTag=null;addingChainFor=null;
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.mode===m));
-  document.getElementById('main-title').textContent=m==='todos'?'待办任务':m==='notes'?'全部笔记':'经验';
+  document.getElementById('main-title').textContent=m==='todos'?'待办任务':m==='notes'?'全部笔记':m==='proj'?'项目日志':'经验';
   document.getElementById('batch-btn').style.display=m==='todos'?'':'none';
+  const projSb=document.getElementById('sb-proj-section');
+  if(projSb)projSb.style.display=m==='proj'?'':'none';
+  const projBtn=document.getElementById('proj-add-btn-wrap');
+  if(projBtn)projBtn.innerHTML=m==='proj'?'<button class="add-btn" style="font-size:11px;padding:4px 12px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.12);background:none;color:rgba(0,0,0,0.45);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;" onclick="openProjLogModal()"><i class="ti ti-plus" style="font-size:12px;" aria-hidden="true"></i>记录版本</button>':'';
   renderSidebarTags();render();
 }
 function filterByTag(tagId){
@@ -1143,6 +1269,7 @@ function setCapMode(m){
 }
 function render(){
   const s=document.getElementById('stream'),cap=document.getElementById('capture-area');
+  if(mode==='proj'){cap.innerHTML='';renderProj(s);updateCounts();return;}
   renderCaptureUnified(cap);
   if(mode==='todos')renderTodos(s);
   else if(mode==='notes')renderNotes(s);
@@ -2003,6 +2130,187 @@ function updateCounts(){
   document.getElementById('cnt-e').textContent=notes.filter(n=>n.isExp).length;
 }
 
+/* ── PROJECT LOG ── */
+const PROJ_COLORS=['#6366f1','#0ea5e9','#22c55e','#f59e0b','#ef4444','#8b5cf6'];
+function renderProj(s){
+  if(!s)return;
+  /* sidebar project list */
+  const sbSec=document.getElementById('sb-proj-section');
+  if(sbSec)renderProjSidebar(sbSec);
+  if(!projects.length){
+    s.innerHTML=`<div style="text-align:center;padding:80px 0 40px;color:rgba(0,0,0,0.28);font-size:13px;">
+      还没有项目<br>
+      <button onclick="openNewProjectModal()" style="margin-top:14px;font-size:12px;padding:7px 18px;border-radius:9px;border:0.5px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.07);color:#4338ca;cursor:pointer;font-family:inherit;">+ 新建项目</button>
+    </div>`;
+    return;
+  }
+  const proj=projects.find(p=>p.id===_activeProject)||projects[0];
+  if(!proj){s.innerHTML='';return;}
+  _activeProject=proj.id;
+  /* topbar add button */
+  const tb=document.getElementById('proj-add-btn-wrap');
+  if(tb)tb.innerHTML=`<button class="add-btn" style="font-size:11px;padding:4px 12px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.12);background:none;color:rgba(0,0,0,0.45);cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="openProjLogModal()"><i class="ti ti-plus" style="font-size:12px;" aria-hidden="true"></i>记录版本</button>`;
+  const logs=[...(proj.logs||[])].sort((a,b)=>b.isoDate.localeCompare(a.isoDate));
+  if(!logs.length){
+    s.innerHTML=`<div style="text-align:center;padding:60px 0;color:rgba(0,0,0,0.28);font-size:13px;">
+      还没有版本记录<br><span style="font-size:11px;margin-top:6px;display:block;">点右上角「记录版本」开始记录</span>
+    </div>`;
+    return;
+  }
+  /* group by month */
+  const byMonth={};
+  logs.forEach(l=>{
+    const m=l.isoDate.slice(0,7);
+    (byMonth[m]=byMonth[m]||[]).push(l);
+  });
+  let html='<div class="tl-wrap">';
+  Object.entries(byMonth).forEach(([month,entries],mi)=>{
+    const d=new Date(month+'-01');
+    html+=`<div class="tl-year-sep">${d.getFullYear()}年${d.getMonth()+1}月</div>`;
+    entries.forEach((log,i)=>{
+      const isLast=mi===Object.keys(byMonth).length-1&&i===entries.length-1;
+      const dotClass=log.tags.includes('feat')?'feat':log.tags.includes('fix')?'fix':log.tags.includes('opt')?'opt':'mix';
+      const badgesHtml=log.tags.map(t=>{
+        const cls=t==='feat'?'feat':t==='fix'?'fix':t==='opt'?'opt':'custom';
+        const label=t==='feat'?'新功能':t==='fix'?'bug修复':t==='opt'?'优化':t;
+        return`<span class="tl-badge ${cls}">${label}</span>`;
+      }).join('');
+      const pointsHtml=(log.points||[]).map(p=>`<div class="tl-point-row"><span class="tl-bullet">·</span><span>${esc(p)}</span></div>`).join('');
+      html+=`<div class="tl-entry">
+        <div class="tl-spine"><div class="tl-dot ${dotClass}"></div>${!isLast?'<div class="tl-spine-line"></div>':''}</div>
+        <div class="tl-card">
+          <div class="tl-card-head">
+            <span class="tl-ver">${esc(log.ver)}</span>
+            <span class="tl-time">${log.isoDate} ${log.time||''}</span>
+          </div>
+          ${badgesHtml?`<div class="tl-badges">${badgesHtml}</div>`:''}
+          <div class="tl-points">${pointsHtml}</div>
+          ${log.detail?`<div style="font-size:11.5px;color:rgba(0,0,0,0.4);margin-top:6px;line-height:1.6;">${esc(log.detail)}</div>`:''}
+          <div class="tl-card-actions">
+            <button class="tl-act-btn" onclick="editProjLog('${proj.id}','${log.id}')">编辑</button>
+            <button class="tl-act-btn del" onclick="deleteProjLog('${proj.id}','${log.id}')">删除</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  html+='</div>';
+  s.innerHTML=html;
+}
+function renderProjSidebar(el){
+  let html='<div class="proj-sb-label">项目</div>';
+  html+=projects.map(p=>`<div class="proj-item${p.id===_activeProject?' active':''}" onclick="selectProject('${p.id}')"><div class="proj-dot" style="background:${p.color||'#6366f1'};"></div>${esc(p.name)}</div>`).join('');
+  html+=`<button class="proj-add-btn" onclick="openNewProjectModal()"><i class="ti ti-plus" style="font-size:11px;" aria-hidden="true"></i>新建项目</button>`;
+  el.innerHTML=html;
+}
+function selectProject(id){_activeProject=id;render();}
+function openNewProjectModal(){
+  _npColor='#6366f1';
+  const inp=document.getElementById('np-name');if(inp)inp.value='';
+  document.querySelectorAll('#np-color-row .proj-dot').forEach(d=>{
+    d.style.border=d.dataset.color===_npColor?'2px solid '+d.dataset.color:'none';
+  });
+  document.getElementById('modal-new-proj').classList.add('open');
+  setTimeout(()=>document.getElementById('np-name')&&document.getElementById('np-name').focus(),80);
+}
+function selectNpColor(el){
+  _npColor=el.dataset.color;
+  document.querySelectorAll('#np-color-row .proj-dot').forEach(d=>{
+    d.style.border=d.dataset.color===_npColor?'2px solid '+d.dataset.color:'none';
+  });
+}
+function confirmNewProject(){
+  const name=document.getElementById('np-name')&&document.getElementById('np-name').value.trim();
+  if(!name){toast('请输入项目名称');return;}
+  if(projects.length>=5){toast('最多5个项目');return;}
+  const id=uid();
+  projects.push({id,name,color:_npColor,logs:[]});
+  _activeProject=id;
+  document.getElementById('modal-new-proj').classList.remove('open');
+  saveProjects();render();toast('项目已创建');
+}
+/* proj log modal */
+function openProjLogModal(editId){
+  _editLogId=editId||null;
+  _plSelectedTags=[];
+  const proj=projects.find(p=>p.id===_activeProject);
+  let log=null;
+  if(editId&&proj)log=(proj.logs||[]).find(l=>l.id===editId);
+  const titleEl=document.getElementById('pl-modal-title');
+  if(titleEl)titleEl.textContent=log?'编辑版本记录':'记录版本';
+  const verEl=document.getElementById('pl-ver');
+  if(verEl)verEl.value=log?log.ver:'';
+  if(ptEl)ptEl.value=log?(log.points||[]).join('\n'):'';
+  const dtEl=document.getElementById('pl-detail');
+  if(dtEl)dtEl.value=log?log.detail||'':'';
+  _plSelectedTags=log?[...log.tags]:[];
+  renderPlTags();
+  document.getElementById('modal-proj-log').classList.add('open');
+  setTimeout(()=>verEl&&verEl.focus(),80);
+}
+function closeProjLogModal(){
+  document.getElementById('modal-proj-log').classList.remove('open');
+  _editLogId=null;_plSelectedTags=[];
+}
+function renderPlTags(){
+  const row=document.getElementById('pl-tag-row');if(!row)return;
+  row.querySelectorAll('.pl-tag').forEach(el=>{
+    const t=el.dataset.type;
+    if(t){
+      const sel=_plSelectedTags.includes(t);
+      el.classList.toggle('selected',sel);
+      el.querySelector('i').className=sel?'ti ti-check':'ti ti-plus';
+      el.style.fontSize='';
+    }
+  });
+}
+function togglePlTag(el){
+  const t=el.dataset.type;if(!t)return;
+  const idx=_plSelectedTags.indexOf(t);
+  if(idx>=0)_plSelectedTags.splice(idx,1);else _plSelectedTags.push(t);
+  renderPlTags();
+}
+function addCustomPlTag(){
+  const name=prompt('输入标签名称（如：重构、性能）');
+  if(!name||!name.trim())return;
+  const t=name.trim();
+  if(!_plSelectedTags.includes(t))_plSelectedTags.push(t);
+  const row=document.getElementById('pl-tag-row');if(!row)return;
+  const span=document.createElement('span');
+  span.className='pl-tag custom selected';
+  span.dataset.type=t;
+  span.innerHTML=`<i class="ti ti-check" style="font-size:9px;" aria-hidden="true"></i>${esc(t)}<span onclick="removeCustomPlTag('${t}')" style="cursor:pointer;margin-left:2px;opacity:.6;">×</span>`;
+  row.insertBefore(span,row.querySelector('.pl-tag-add'));
+}
+function removeCustomPlTag(t){
+  _plSelectedTags=_plSelectedTags.filter(x=>x!==t);
+  const row=document.getElementById('pl-tag-row');if(!row)return;
+  const el=row.querySelector('[data-type="'+t+'"]');if(el)el.remove();
+}
+function confirmProjLog(){
+  const ver=document.getElementById('pl-ver')&&document.getElementById('pl-ver').value.trim();
+  if(!ver){toast('请填写版本号');return;}
+  const pts=(document.getElementById('pl-points')&&document.getElementById('pl-points').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  const detail=(document.getElementById('pl-detail')&&document.getElementById('pl-detail').value.trim())||'';
+  const proj=projects.find(p=>p.id===_activeProject);if(!proj)return;
+  if(!proj.logs)proj.logs=[];
+  const now=new Date();
+  const timeStr=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  if(_editLogId){
+    const log=proj.logs.find(l=>l.id===_editLogId);
+    if(log){log.ver=ver;log.tags=[..._plSelectedTags];log.points=pts;log.detail=detail;}
+  }else{
+    proj.logs.unshift({id:uid(),ver,tags:[..._plSelectedTags],points:pts,detail,isoDate:todayISO(),time:timeStr});
+  }
+  closeProjLogModal();saveProjects();render();toast(_editLogId?'已更新':'版本已记录');
+}
+function editProjLog(projId,logId){_activeProject=projId;openProjLogModal(logId);}
+function deleteProjLog(projId,logId){
+  if(!confirm('确认删除这条记录？'))return;
+  const proj=projects.find(p=>p.id===projId);if(!proj)return;
+  proj.logs=(proj.logs||[]).filter(l=>l.id!==logId);
+  saveProjects();render();toast('已删除');
+}
 /* ── HEATMAP ── */
 /* ── HEATMAP FILTER STATE ── */
 let _hmSelectedDate=null;
@@ -2092,7 +2400,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();spOpen();return;}
   if(e.key==='Escape'){
     if(document.getElementById('search-panel').classList.contains('open')){spClose();return;}
-    ['tag','tagmgr','link','exp','batch','sync','next-step'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
+    ['tag','tagmgr','link','exp','batch','sync','next-step','proj-log','new-proj'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
     closeTodoEditModal();closeImgPreview();
     if(_editingNoteId)gntCancel();
   }
@@ -2148,6 +2456,21 @@ function spSearch(){
     }).join('');
     html+='</div>';
   }
+  /* search project logs */
+  const rp=[];
+  projects.forEach(proj=>{
+    (proj.logs||[]).forEach(log=>{
+      const txt=(log.ver+' '+(log.points||[]).join(' ')+(log.detail||'')).toLowerCase();
+      if(txt.includes(q))rp.push({proj,log});
+    });
+  });
+  if(rp.length){
+    html+='<div class="sp-group"><div class="sp-group-lbl"><i class="ti ti-versions" style="font-size:11px;color:#4338ca;" aria-hidden="true"></i>项目日志 · '+rp.length+'</div>';
+    html+=rp.slice(0,5).map(({proj,log})=>{
+      return '<div class="sp-item" data-sp data-type="proj" data-id="'+proj.id+'"><div class="sp-icon todo"><i class="ti ti-versions" style="font-size:13px" aria-hidden="true"></i></div><div class="sp-content"><div class="sp-title">'+spHL(log.ver,q)+'<span style="font-size:10px;color:rgba(0,0,0,0.3);margin-left:6px;">'+esc(proj.name)+'</span></div><div class="sp-meta">'+(log.points&&log.points[0]?spHL(log.points[0],q):log.isoDate)+'</div></div><span class="sp-badge todo">日志</span></div>';
+    }).join('');
+    html+='</div>';
+  }
   body.innerHTML=html;
   _spIdx=-1;
   body.querySelectorAll('[data-sp]').forEach(el=>{
@@ -2164,6 +2487,9 @@ function spJump(type,id){
     setTimeout(()=>{const el=document.getElementById('note-'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},120);
   }else if(type==='exp'){
     switchMode('exp');
+  }else if(type==='proj'){
+    _activeProject=id;
+    switchMode('proj');
   }
 }
 document.addEventListener('keydown',function(e){
