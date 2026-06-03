@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.7</title>
+<title>工作台 v2.7A</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -500,6 +500,24 @@ body::before{
 .tl-act-btn:hover{background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.6);}
 .tl-act-btn.del{color:rgba(239,68,68,0.6);}
 .tl-act-btn.del:hover{background:rgba(239,68,68,0.06);color:#dc2626;}
+/* thought/bug entries */
+.tl-card.type-bug{border-color:rgba(239,68,68,0.25);}
+.tl-card.type-idea{border-color:rgba(245,158,11,0.25);}
+.tl-card.type-bug.st-doing{border-color:rgba(99,102,241,0.25);}
+.tl-card.type-bug.st-solved,.tl-card.type-idea.st-solved{border-color:rgba(34,197,94,0.25);}
+.tl-dot.bug{background:#ef4444;}
+.tl-dot.idea{background:#f59e0b;}
+.tl-dot.doing-dot{background:#6366f1;}
+.tl-dot.solved-dot{background:#22c55e;}
+.st-row{display:flex;align-items:center;gap:6px;margin-top:7px;flex-wrap:wrap;}
+.st-lbl{font-size:10px;color:rgba(0,0,0,0.3);}
+.st-btn{font-size:9px;padding:2px 8px;border-radius:9px;border:0.5px solid rgba(0,0,0,0.1);background:none;color:rgba(0,0,0,0.35);cursor:pointer;font-family:inherit;transition:all .1s;}
+.st-btn.active-pending{background:rgba(239,68,68,0.08);color:#dc2626;border-color:rgba(239,68,68,0.25);}
+.st-btn.active-doing{background:rgba(99,102,241,0.08);color:#4338ca;border-color:rgba(99,102,241,0.25);}
+.st-btn.active-solved{background:rgba(34,197,94,0.08);color:#047857;border-color:rgba(34,197,94,0.25);}
+.solved-ts{font-size:10px;color:#047857;margin-top:4px;}
+.tl-note-title{font-size:13px;font-weight:500;color:#1a1a2e;flex:1;}
+.tl-note-body{font-size:12px;color:rgba(0,0,0,0.55);margin-top:4px;line-height:1.6;}
 /* proj log modal */
 .proj-log-modal{width:min(580px,92vw);}
 .pl-field{margin-bottom:14px;}
@@ -519,7 +537,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.7</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.7A</span></div>
     <div class="sb-stats">
       <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -700,6 +718,32 @@ body::before{
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('modal-exp-conclusion').classList.remove('open')">取消</button>
       <button class="btn-primary" onclick="saveExpConclusion()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- THOUGHT MODAL -->
+<div class="modal-overlay" id="modal-thought" onclick="if(event.target===this)closeThoughtModal()">
+  <div class="modal" style="width:min(520px,92vw);">
+    <h3 id="th-modal-title">记录思路</h3>
+    <div class="pl-field">
+      <div class="pl-label">类型</div>
+      <div style="display:flex;gap:6px;margin-bottom:2px;">
+        <button class="pl-tag fix selected" id="th-type-bug" onclick="setThoughtType('bug')" style="padding:4px 12px;border-radius:9px;border:0.5px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;cursor:pointer;font-family:inherit;font-size:11px;">🔴 Bug / 问题</button>
+        <button class="pl-tag" id="th-type-idea" onclick="setThoughtType('idea')" style="padding:4px 12px;border-radius:9px;border:0.5px solid rgba(0,0,0,0.1);background:none;color:rgba(0,0,0,0.45);cursor:pointer;font-family:inherit;font-size:11px;">💡 想法 / 思路</button>
+      </div>
+    </div>
+    <div class="pl-field">
+      <div class="pl-label">标题 *</div>
+      <input class="pl-inp" id="th-title" placeholder="一句话描述这个 bug 或想法" />
+    </div>
+    <div class="pl-field">
+      <div class="pl-label">详细说明（可选）</div>
+      <textarea class="pl-textarea" id="th-body" placeholder="背景、复现步骤、排查思路…" style="min-height:80px;"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeThoughtModal()">取消</button>
+      <button class="btn-primary" onclick="confirmThought()">保存</button>
     </div>
   </div>
 </div>
@@ -1231,7 +1275,7 @@ function switchMode(m){
   const projSb=document.getElementById('sb-proj-section');
   if(projSb)projSb.style.display=m==='proj'?'':'none';
   const projBtn=document.getElementById('proj-add-btn-wrap');
-  if(projBtn)projBtn.innerHTML=m==='proj'?'<button class="add-btn" style="font-size:11px;padding:4px 12px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.12);background:none;color:rgba(0,0,0,0.45);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;" onclick="openProjLogModal()"><i class="ti ti-plus" style="font-size:12px;" aria-hidden="true"></i>记录版本</button>':'';
+  if(projBtn)projBtn.innerHTML=m==='proj'?'<span style="display:flex;gap:6px;"><button style="font-size:10px;padding:4px 11px;border-radius:8px;border:0.5px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.07);color:#4338ca;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;" onclick="openProjLogModal()"><i class="ti ti-versions" style="font-size:11px;" aria-hidden="true"></i>记录版本</button><button style="font-size:10px;padding:4px 11px;border-radius:8px;border:0.5px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.07);color:#92400e;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;" onclick="openThoughtModal()"><i class="ti ti-pencil" style="font-size:11px;" aria-hidden="true"></i>记录思路</button></span>':'';
   renderSidebarTags();render();
 }
 function filterByTag(tagId){
@@ -2169,29 +2213,56 @@ function renderProj(s){
     html+=`<div class="tl-year-sep">${d.getFullYear()}年${d.getMonth()+1}月</div>`;
     entries.forEach((log,i)=>{
       const isLast=mi===Object.keys(byMonth).length-1&&i===entries.length-1;
-      const dotClass=log.tags.includes('feat')?'feat':log.tags.includes('fix')?'fix':log.tags.includes('opt')?'opt':'mix';
-      const badgesHtml=log.tags.map(t=>{
-        const cls=t==='feat'?'feat':t==='fix'?'fix':t==='opt'?'opt':'custom';
-        const label=t==='feat'?'新功能':t==='fix'?'bug修复':t==='opt'?'优化':t;
-        return`<span class="tl-badge ${cls}">${label}</span>`;
-      }).join('');
-      const pointsHtml=(log.points||[]).map(p=>`<div class="tl-point-row"><span class="tl-bullet">·</span><span>${esc(p)}</span></div>`).join('');
-      html+=`<div class="tl-entry">
-        <div class="tl-spine"><div class="tl-dot ${dotClass}"></div>${!isLast?'<div class="tl-spine-line"></div>':''}</div>
-        <div class="tl-card">
-          <div class="tl-card-head">
-            <span class="tl-ver">${esc(log.ver)}</span>
-            <span class="tl-time">${log.isoDate} ${log.time||''}</span>
+      if(log.kind==='thought'){
+        const st=log.status||'pending';
+        const stDot=st==='solved'?'solved-dot':st==='doing'?'doing-dot':log.type==='bug'?'bug':'idea';
+        const cardCls='tl-card type-'+(log.type||'bug')+' st-'+st;
+        const solvedHtml=st==='solved'&&log.solvedAt?`<div class="solved-ts">✓ 已解决 · ${log.solvedAt}</div>`:'';
+        html+=`<div class="tl-entry">
+          <div class="tl-spine"><div class="tl-dot ${stDot}"></div>${!isLast?'<div class="tl-spine-line"></div>':''}</div>
+          <div class="${cardCls}">
+            <div class="tl-card-head">
+              <span class="tl-note-title">${log.type==='bug'?'🔴 ':'💡 '}${esc(log.title||'')}</span>
+              <span class="tl-time">${log.isoDate} ${log.time||''}</span>
+            </div>
+            ${log.body?`<div class="tl-note-body">${esc(log.body)}</div>`:''}
+            <div class="st-row">
+              <span class="st-lbl">状态</span>
+              <button class="st-btn${st==='pending'?' active-pending':''}" onclick="setThoughtStatus('${proj.id}','${log.id}','pending')">待处理</button>
+              <button class="st-btn${st==='doing'?' active-doing':''}" onclick="setThoughtStatus('${proj.id}','${log.id}','doing')">进行中</button>
+              <button class="st-btn${st==='solved'?' active-solved':''}" onclick="setThoughtStatus('${proj.id}','${log.id}','solved')">已解决</button>
+            </div>
+            ${solvedHtml}
+            <div class="tl-card-actions">
+              <button class="tl-act-btn del" onclick="deleteProjLog('${proj.id}','${log.id}')">删除</button>
+            </div>
           </div>
-          ${badgesHtml?`<div class="tl-badges">${badgesHtml}</div>`:''}
-          <div class="tl-points">${pointsHtml}</div>
-          ${log.detail?`<div style="font-size:11.5px;color:rgba(0,0,0,0.4);margin-top:6px;line-height:1.6;">${esc(log.detail)}</div>`:''}
-          <div class="tl-card-actions">
-            <button class="tl-act-btn" onclick="editProjLog('${proj.id}','${log.id}')">编辑</button>
-            <button class="tl-act-btn del" onclick="deleteProjLog('${proj.id}','${log.id}')">删除</button>
+        </div>`;
+      } else {
+        const dotClass=log.tags.includes('feat')?'feat':log.tags.includes('fix')?'fix':log.tags.includes('opt')?'opt':'mix';
+        const badgesHtml=log.tags.map(t=>{
+          const cls=t==='feat'?'feat':t==='fix'?'fix':t==='opt'?'opt':'custom';
+          const label=t==='feat'?'新功能':t==='fix'?'bug修复':t==='opt'?'优化':t;
+          return`<span class="tl-badge ${cls}">${label}</span>`;
+        }).join('');
+        const pointsHtml=(log.points||[]).map(p=>`<div class="tl-point-row"><span class="tl-bullet">·</span><span>${esc(p)}</span></div>`).join('');
+        html+=`<div class="tl-entry">
+          <div class="tl-spine"><div class="tl-dot ${dotClass}"></div>${!isLast?'<div class="tl-spine-line"></div>':''}</div>
+          <div class="tl-card">
+            <div class="tl-card-head">
+              <span class="tl-ver">${esc(log.ver)}</span>
+              <span class="tl-time">${log.isoDate} ${log.time||''}</span>
+            </div>
+            ${badgesHtml?`<div class="tl-badges">${badgesHtml}</div>`:''}
+            <div class="tl-points">${pointsHtml}</div>
+            ${log.detail?`<div style="font-size:11.5px;color:rgba(0,0,0,0.4);margin-top:6px;line-height:1.6;">${esc(log.detail)}</div>`:''}
+            <div class="tl-card-actions">
+              <button class="tl-act-btn" onclick="editProjLog('${proj.id}','${log.id}')">编辑</button>
+              <button class="tl-act-btn del" onclick="deleteProjLog('${proj.id}','${log.id}')">删除</button>
+            </div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
+      }
     });
   });
   html+='</div>';
@@ -2306,6 +2377,65 @@ function confirmProjLog(){
   closeProjLogModal();saveProjects();render();toast(_editLogId?'已更新':'版本已记录');
 }
 function editProjLog(projId,logId){_activeProject=projId;openProjLogModal(logId);}
+/* thought/bug modal */
+let _thoughtType='bug';
+let _editThoughtId=null;
+function setThoughtType(t){
+  _thoughtType=t;
+  const bugBtn=document.getElementById('th-type-bug');
+  const ideaBtn=document.getElementById('th-type-idea');
+  if(bugBtn)bugBtn.style.cssText=t==='bug'?'padding:4px 12px;border-radius:9px;border:0.5px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;cursor:pointer;font-family:inherit;font-size:11px;':'padding:4px 12px;border-radius:9px;border:0.5px solid rgba(0,0,0,0.1);background:none;color:rgba(0,0,0,0.45);cursor:pointer;font-family:inherit;font-size:11px;';
+  if(ideaBtn)ideaBtn.style.cssText=t==='idea'?'padding:4px 12px;border-radius:9px;border:0.5px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.08);color:#92400e;cursor:pointer;font-family:inherit;font-size:11px;':'padding:4px 12px;border-radius:9px;border:0.5px solid rgba(0,0,0,0.1);background:none;color:rgba(0,0,0,0.45);cursor:pointer;font-family:inherit;font-size:11px;';
+}
+function openThoughtModal(editId){
+  _editThoughtId=editId||null;
+  _thoughtType='bug';
+  setThoughtType('bug');
+  const titleInp=document.getElementById('th-title');
+  const bodyInp=document.getElementById('th-body');
+  const hEl=document.getElementById('th-modal-title');
+  let log=null;
+  if(editId){
+    const proj=projects.find(p=>p.id===_activeProject);
+    if(proj)log=(proj.logs||[]).find(l=>l.id===editId);
+  }
+  if(hEl)hEl.textContent=log?'编辑记录':'记录思路';
+  if(log){_thoughtType=log.type||'bug';setThoughtType(_thoughtType);}
+  if(titleInp)titleInp.value=log?log.title||'':'';
+  if(bodyInp)bodyInp.value=log?log.body||'':'';
+  document.getElementById('modal-thought').classList.add('open');
+  setTimeout(()=>titleInp&&titleInp.focus(),80);
+}
+function closeThoughtModal(){
+  document.getElementById('modal-thought').classList.remove('open');
+  _editThoughtId=null;
+}
+function confirmThought(){
+  const title=document.getElementById('th-title')&&document.getElementById('th-title').value.trim();
+  if(!title){toast('请填写标题');return;}
+  const body=(document.getElementById('th-body')&&document.getElementById('th-body').value.trim())||'';
+  const proj=projects.find(p=>p.id===_activeProject);if(!proj)return;
+  if(!proj.logs)proj.logs=[];
+  const now=new Date();
+  const timeStr=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  if(_editThoughtId){
+    const log=proj.logs.find(l=>l.id===_editThoughtId);
+    if(log){log.title=title;log.body=body;log.type=_thoughtType;}
+  }else{
+    proj.logs.unshift({id:uid(),kind:'thought',type:_thoughtType,title,body,status:'pending',isoDate:todayISO(),time:timeStr});
+  }
+  closeThoughtModal();saveProjects();render();toast('已记录');
+}
+function setThoughtStatus(projId,logId,status){
+  const proj=projects.find(p=>p.id===projId);if(!proj)return;
+  const log=(proj.logs||[]).find(l=>l.id===logId);if(!log)return;
+  log.status=status;
+  if(status==='solved'&&!log.solvedAt){
+    const now=new Date();
+    log.solvedAt=(now.getMonth()+1)+'/'+now.getDate()+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  }
+  saveProjects();render();
+}
 function deleteProjLog(projId,logId){
   if(!confirm('确认删除这条记录？'))return;
   const proj=projects.find(p=>p.id===projId);if(!proj)return;
@@ -2401,7 +2531,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();spOpen();return;}
   if(e.key==='Escape'){
     if(document.getElementById('search-panel').classList.contains('open')){spClose();return;}
-    ['tag','tagmgr','link','exp','batch','sync','next-step','proj-log','new-proj'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
+    ['tag','tagmgr','link','exp','batch','sync','next-step','proj-log','new-proj','thought'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
     closeTodoEditModal();closeImgPreview();
     if(_editingNoteId)gntCancel();
   }
