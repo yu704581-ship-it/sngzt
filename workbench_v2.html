@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.6</title>
+<title>工作台 v2.6A</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -38,7 +38,9 @@ body::before{
 .sb-title{font-size:15px;font-weight:700;color:#1a1a2e;letter-spacing:-0.4px;}
 .sb-ver{font-size:10px;color:rgba(0,0,0,0.28);font-family:monospace;}
 .sb-stats{display:flex;margin-top:11px;background:rgba(255,255,255,0.65);border-radius:10px;overflow:hidden;border:0.5px solid rgba(0,0,0,0.07);}
-.sb-stat{flex:1;text-align:center;padding:7px 3px;border-right:0.5px solid rgba(0,0,0,0.06);}
+.sb-stat{flex:1;text-align:center;padding:7px 3px;border-right:0.5px solid rgba(0,0,0,0.06);transition:background .12s;}
+.sb-stat:hover{background:rgba(99,102,241,0.06);}
+.sb-stat:last-child{border-right:none;}
 .sb-stat:last-child{border-right:none;}
 .sb-num{display:block;font-size:16px;font-weight:700;color:#1a1a2e;}
 .sb-lbl{display:block;font-size:9px;color:rgba(0,0,0,0.35);margin-top:1px;}
@@ -194,7 +196,7 @@ body::before{
 /* todo edit modal */
 .todo-edit-modal{width:min(860px,90vw);}
 .todo-edit-title{width:100%;border:none;border-bottom:1.5px solid #6366f1;outline:none;font-size:15px;font-weight:500;color:#1a1a2e;background:transparent;font-family:inherit;padding:4px 0 6px;margin-bottom:14px;}
-.todo-edit-remark{min-height:80px;max-height:260px;overflow-y:auto;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;font-size:13px;color:#1a1a2e;line-height:1.75;outline:none;word-break:break-word;background:rgba(255,255,255,0.7);}
+.todo-edit-remark{min-height:120px;max-height:360px;overflow-y:auto;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;font-size:13px;color:#1a1a2e;line-height:1.75;outline:none;word-break:break-word;background:rgba(255,255,255,0.7);}
 .todo-edit-remark:empty:before{content:"添加备注…";color:rgba(0,0,0,0.25);pointer-events:none;}
 .todo-edit-remark a{color:#4f46e5;text-decoration:underline;text-underline-offset:2px;}
 .remark-toolbar{display:flex;align-items:center;gap:2px;padding:4px 8px;border:0.5px solid rgba(0,0,0,0.12);border-bottom:none;border-radius:8px 8px 0 0;background:rgba(0,0,0,0.02);flex-wrap:wrap;}
@@ -241,15 +243,15 @@ body::before{
 
 /* ── TODOS ── */
 .todo-wrap{
-  background:rgba(255,255,255,0.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:0.5px solid rgba(255,255,255,0.88);border-radius:12px;overflow:hidden;margin-bottom:8px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.05),0 4px 12px rgba(0,0,0,0.04);
+  display:flex;flex-direction:column;gap:4px;margin-bottom:8px;
 }
-.todo-row{display:flex;align-items:flex-start;gap:10px;padding:10px 13px;border-bottom:0.5px solid rgba(0,0,0,0.05);transition:background .12s;animation:cardIn .25s cubic-bezier(.34,1.56,.64,1) both;position:relative;}
-.todo-row:last-child{border-bottom:none;}
-.todo-row:hover{background:rgba(255,255,255,0.45);}
-.todo-row.pinned{background:rgba(251,191,36,0.07);border-left:2.5px solid rgba(245,158,11,0.5);}
-.todo-row.active-next{background:rgba(99,102,241,0.04);}
+.todo-row{display:flex;align-items:flex-start;gap:10px;padding:10px 13px;
+  background:rgba(255,255,255,0.62);border:0.5px solid rgba(255,255,255,0.88);border-radius:9px;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:background .12s,box-shadow .12s;animation:cardIn .25s cubic-bezier(.34,1.56,.64,1) both;position:relative;}
+.todo-row:hover{background:rgba(255,255,255,0.8);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.todo-row.pinned{background:rgba(251,191,36,0.1);border-color:rgba(245,158,11,0.3);}
+.todo-row.active-next{background:rgba(99,102,241,0.06);border-color:rgba(99,102,241,0.15);}
 .todo-circle{width:17px;height:17px;border-radius:50%;border:1.5px solid rgba(0,0,0,0.2);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .todo-circle:hover{border-color:#6366f1;background:rgba(99,102,241,0.06);}
 .todo-circle.done{background:#22c55e;border-color:#22c55e;animation:checkPop .28s cubic-bezier(.34,1.56,.64,1);}
@@ -291,6 +293,27 @@ body::before{
 .add-todo-row:hover{color:#4338ca;background:rgba(99,102,241,0.04);}
 .sec-done{font-size:10px;color:rgba(0,0,0,0.25);padding:10px 0 8px;display:flex;align-items:center;gap:8px;letter-spacing:.04em;text-transform:uppercase;}
 .sec-done::after{content:'';flex:1;height:.5px;background:rgba(0,0,0,0.07);}
+.done-collapse-row{display:flex;align-items:center;gap:7px;padding:8px 13px;background:rgba(255,255,255,0.42);border:0.5px solid rgba(255,255,255,0.75);border-radius:9px;cursor:pointer;transition:background .12s;margin-bottom:4px;}
+.done-collapse-row:hover{background:rgba(255,255,255,0.65);}
+.done-collapse-label{font-size:11px;color:rgba(0,0,0,0.32);}
+.done-collapse-count{font-size:10px;padding:1px 7px;border-radius:8px;background:rgba(34,197,94,0.1);color:#047857;border:0.5px solid rgba(34,197,94,0.2);}
+.done-collapse-chevron{font-size:10px;color:rgba(0,0,0,0.22);margin-left:auto;transition:transform .2s;}
+.done-collapse-chevron.open{transform:rotate(90deg);}
+/* next step modal */
+.next-step-btn{display:none;font-size:10px;padding:2px 9px;border-radius:9px;border:0.5px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.06);color:#4338ca;cursor:pointer;font-family:inherit;margin-top:5px;transition:all .12s;}
+.next-step-btn:hover{background:rgba(99,102,241,0.12);}
+.todo-row.done-row-show .next-step-btn{display:inline-flex;align-items:center;gap:4px;}
+.ns-input-block{border:0.5px solid rgba(99,102,241,0.3);border-radius:10px;overflow:hidden;box-shadow:0 0 0 3px rgba(99,102,241,0.08);margin-bottom:12px;}
+.ns-title-row{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:0.5px solid rgba(0,0,0,0.06);}
+.ns-title-inp{border:none;outline:none;background:transparent;font-size:13.5px;font-weight:500;color:#1a1a2e;flex:1;font-family:inherit;}
+.ns-remark-row{padding:9px 13px;min-height:52px;border-bottom:0.5px solid rgba(0,0,0,0.05);}
+.ns-remark-edit{width:100%;border:none;outline:none;background:transparent;font-size:12.5px;color:#1a1a2e;font-family:inherit;resize:none;min-height:48px;line-height:1.6;}
+.ns-img-row{padding:7px 13px;display:flex;align-items:center;gap:8px;}
+.ns-img-add{width:32px;height:32px;border-radius:7px;border:1.5px dashed rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(0,0,0,0.2);cursor:pointer;flex-shrink:0;}
+.ns-img-strip{display:flex;gap:5px;flex-wrap:wrap;}
+.ns-kbd-hint{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.ns-kh{font-size:10px;color:rgba(0,0,0,0.3);display:flex;align-items:center;gap:3px;}
+.ns-kbd{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,0.06);border:0.5px solid rgba(0,0,0,0.1);font-family:monospace;}
 /* todo images */
 .todo-imgs{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
 .todo-img-wrap{position:relative;}
@@ -444,11 +467,11 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.6</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.6A</span></div>
     <div class="sb-stats">
-      <div class="sb-stat"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
-      <div class="sb-stat"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
-      <div class="sb-stat"><span class="sb-num" id="cnt-e">0</span><span class="sb-lbl">经验</span></div>
+      <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
+      <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
+      <div class="sb-stat" onclick="switchMode('exp')" style="cursor:pointer;"><span class="sb-num" id="cnt-e">0</span><span class="sb-lbl">经验</span></div>
     </div>
   </div>
   <div class="hm-wrap">
@@ -622,6 +645,39 @@ body::before{
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('modal-exp-conclusion').classList.remove('open')">取消</button>
       <button class="btn-primary" onclick="saveExpConclusion()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEXT STEP MODAL -->
+<div class="modal-overlay" id="modal-next-step" onclick="if(event.target===this)closeNextStepModal()">
+  <div class="modal" style="width:min(520px,92vw);">
+    <h3 style="margin-bottom:3px;">接下一步</h3>
+    <div id="ns-from" style="font-size:11px;color:rgba(0,0,0,0.35);margin-bottom:14px;"></div>
+    <div class="ns-input-block">
+      <div class="ns-title-row">
+        <i class="ti ti-checkbox" style="font-size:14px;color:rgba(99,102,241,0.45);" aria-hidden="true"></i>
+        <input class="ns-title-inp" id="ns-title" placeholder="下一步做什么…" />
+      </div>
+      <div class="ns-remark-row">
+        <textarea class="ns-remark-edit" id="ns-remark" placeholder="备注… Shift+↵ 换行，↵ 提交" rows="2"></textarea>
+      </div>
+      <div class="ns-img-row">
+        <div class="ns-img-add" onclick="document.getElementById('ns-img-file').click()">+</div>
+        <input type="file" id="ns-img-file" accept="image/*" style="display:none;" onchange="handleNsImgFile(this)" />
+        <div class="ns-img-strip" id="ns-img-strip"></div>
+        <span style="font-size:10px;color:rgba(0,0,0,0.25);">⌘V 粘贴截图</span>
+      </div>
+    </div>
+    <div class="ns-kbd-hint">
+      <span class="ns-kh"><span class="ns-kbd">↵</span> 标题→备注</span>
+      <span class="ns-kh"><span class="ns-kbd">Shift+↵</span> 备注换行</span>
+      <span class="ns-kh"><span class="ns-kbd">↵</span> 备注中再回车=提交</span>
+      <span class="ns-kh"><span class="ns-kbd">Esc</span> 跳过</span>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeNextStepModal()">跳过 Esc</button>
+      <button class="btn-primary" onclick="confirmNextStep()">创建下一步 →</button>
     </div>
   </div>
 </div>
@@ -1063,6 +1119,7 @@ function matchSearch(text,tags){
   return tags.some(t=>tagLabel(t).includes(searchText));
 }
 let capMode='todo'; /* 'todo' or 'note' */
+let _doneCollapsed=true;
 function setCapMode(m){
   capMode=m;
   /* update mode buttons */
@@ -1378,8 +1435,21 @@ function renderTodos(s){
   if(!pending.length)html+='<div style="padding:14px 13px;font-size:12px;color:rgba(0,0,0,0.3)">'+qfLabel+'没有待办任务 🎉</div>';
   else html+=renderChainedTodos(pending);
   html+=`</div>`;
-  if(done.length){html+='<div class="sec-done">已完成</div><div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';}
+  if(done.length){
+    html+='<div class="done-collapse-row" onclick="toggleDoneCollapse()">'
+      +'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 4.5l4 4 4-4" stroke="#22c55e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      +'<span class="done-collapse-label">已完成</span>'
+      +'<span class="done-collapse-count">'+done.length+' 条</span>'
+      +'<span class="done-collapse-chevron'+(_doneCollapsed?'':' open')+'">▶</span>'
+      +'</div>';
+    if(!_doneCollapsed)html+='<div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';
+  }
   s.innerHTML=html;
+}
+function toggleDoneCollapse(){
+  _doneCollapsed=!_doneCollapsed;
+  const s=document.getElementById('stream');
+  if(s&&mode==='todos')renderTodos(s);
 }
 function renderChainedTodos(list){
   let html='';
@@ -1424,7 +1494,7 @@ function todoRowHTML(t){
       ${remarkHtml}
     </div>
     <div class="todo-actions">
-      ${!t.done&&!t.locked?`<button class="t-btn chain-btn" onclick="startChainAdd('${t.id}')">+ 接下一步</button>`:''}
+      ${t.done?`<button class="next-step-btn" onclick="openNextStepModal('${t.id}')">+ 接下一步</button>`:(!t.locked?`<button class="t-btn chain-btn" onclick="startChainAdd('${t.id}')">+ 接下一步</button>`:'')}
       ${!t.done?`<button class="t-btn${t.pinned?' pin-active':''}" onclick="togglePin('${t.id}')">${t.pinned?'取消置顶':'📌 置顶'}</button>`:''}
       <button class="t-btn" onclick="openTagModal('todo','${t.id}')">标签</button>
       <button class="t-btn" onclick="deleteTodo('${t.id}')" style="color:#ef4444">删除</button>
@@ -1700,6 +1770,7 @@ function deleteTodoImg(todoId,idx){
 }
 function focusTodoCap(){const inp=document.getElementById('cap-todo-inp');if(inp)inp.focus();}
 function startChainAdd(id){
+  /* legacy: keep for undone tasks */
   addingChainFor=id;render();
   setTimeout(()=>{
     const el=document.getElementById('chain-inp');
@@ -1712,8 +1783,86 @@ function confirmChainAdd(id){
   const text=inp.value.trim();if(!text){toast('请输入任务内容');return;}
   const t=todos.find(x=>String(x.id)===String(id));if(!t)return;
   const nid=uid();
-  todos.splice(todos.findIndex(x=>String(x.id)===String(id))+1,0,{id:nid,done:false,text,date:'待定',tags:[],pinned:false,nextId:t.nextId,locked:!t.done,images:[]});
+  todos.splice(todos.findIndex(x=>String(x.id)===String(id))+1,0,{id:nid,done:false,text,date:'待定',isoDate:todayISO(),tags:[],pinned:false,nextId:t.nextId,locked:!t.done,images:[]});
   t.nextId=nid;addingChainFor=null;saveTodos();render();toast('已加入任务链');
+}
+/* next-step modal (for done tasks) */
+let _nextStepForId=null;
+let _nsImgs=[];
+function openNextStepModal(id){
+  const t=todos.find(x=>String(x.id)===String(id));if(!t)return;
+  _nextStepForId=id;_nsImgs=[];
+  const fromEl=document.getElementById('ns-from');
+  if(fromEl)fromEl.textContent='接「'+(t.text.slice(0,20)+(t.text.length>20?'…':''))+'」的下一步';
+  const titleInp=document.getElementById('ns-title');
+  const remarkInp=document.getElementById('ns-remark');
+  const strip=document.getElementById('ns-img-strip');
+  if(titleInp)titleInp.value='';
+  if(remarkInp)remarkInp.value='';
+  if(strip)strip.innerHTML='';
+  document.getElementById('modal-next-step').classList.add('open');
+  setTimeout(()=>{if(titleInp)titleInp.focus();},80);
+  /* keyboard flow */
+  if(titleInp){
+    titleInp.onkeydown=e=>{
+      if(e.key==='Enter'&&!e.isComposing){e.preventDefault();if(remarkInp)remarkInp.focus();}
+      if(e.key==='Escape'){closeNextStepModal();}
+    };
+  }
+  if(remarkInp){
+    remarkInp.onkeydown=e=>{
+      if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();confirmNextStep();}
+      if(e.key==='Escape'){closeNextStepModal();}
+    };
+    remarkInp.addEventListener('paste',e=>{
+      const items=e.clipboardData&&e.clipboardData.items;
+      if(items){for(let i=0;i<items.length;i++){if(items[i].type.indexOf('image')!==-1){
+        e.preventDefault();
+        const file=items[i].getAsFile();
+        const reader=new FileReader();
+        reader.onload=ev=>{_nsImgs.push(ev.target.result);renderNsImgStrip();};
+        reader.readAsDataURL(file);return;
+      }}}
+    },{once:false});
+  }
+}
+function closeNextStepModal(){
+  document.getElementById('modal-next-step').classList.remove('open');
+  _nextStepForId=null;_nsImgs=[];
+}
+function renderNsImgStrip(){
+  const strip=document.getElementById('ns-img-strip');if(!strip)return;
+  strip.innerHTML=_nsImgs.map((src,i)=>`<div style="position:relative;"><img src="${src}" style="width:36px;height:36px;border-radius:5px;object-fit:cover;" /><button onclick="_nsImgs.splice(${i},1);renderNsImgStrip();" style="position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#ef4444;color:white;border:none;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button></div>`).join('');
+}
+function handleNsImgFile(input){
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=e=>{_nsImgs.push(e.target.result);renderNsImgStrip();};
+  reader.readAsDataURL(input.files[0]);
+  input.value='';
+}
+async function confirmNextStep(){
+  if(!_nextStepForId)return;
+  const titleInp=document.getElementById('ns-title');
+  const remarkInp=document.getElementById('ns-remark');
+  const text=(titleInp&&titleInp.value.trim())||'';
+  if(!text){toast('请输入下一步任务标题');if(titleInp)titleInp.focus();return;}
+  const t=todos.find(x=>String(x.id)===String(_nextStepForId));if(!t)return;
+  const nid=uid();
+  let imgUrls=[];
+  if(_nsImgs.length&&ghConfigured()){
+    upShow('上传图片…');
+    try{imgUrls=await uploadImagesParallel(_nsImgs,'images/todo_'+nid);upProgress(100);}
+    catch(err){toast('图片上传失败');}
+    upHide();
+  }else if(_nsImgs.length){imgUrls=[..._nsImgs];}
+  const remark=(remarkInp&&remarkInp.value.trim())||'';
+  todos.splice(todos.findIndex(x=>String(x.id)===String(_nextStepForId))+1,0,{
+    id:nid,done:false,text,date:'今天',isoDate:todayISO(),tags:[...t.tags],
+    pinned:false,nextId:t.nextId,locked:false,remark,images:imgUrls
+  });
+  t.nextId=nid;
+  closeNextStepModal();saveTodos();render();toast('下一步已创建 →');
 }
 function focusTodoCap(){const inp=document.getElementById('cap-todo-inp');if(inp)inp.focus();}
 
@@ -1849,8 +1998,9 @@ function renderSidebarTags(){
 }
 function updateCounts(){
   document.getElementById('cnt-n').textContent=notes.length;
-  document.getElementById('cnt-t').textContent=todos.filter(t=>!t.done).length;
-  document.getElementById('cnt-e').textContent=experiences.length;
+  const pf=applyTodoDateFilter(todos.filter(t=>!t.done));
+  document.getElementById('cnt-t').textContent=pf.length;
+  document.getElementById('cnt-e').textContent=notes.filter(n=>n.isExp).length;
 }
 
 /* ── HEATMAP ── */
@@ -1942,7 +2092,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();spOpen();return;}
   if(e.key==='Escape'){
     if(document.getElementById('search-panel').classList.contains('open')){spClose();return;}
-    ['tag','tagmgr','link','exp','batch','sync'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
+    ['tag','tagmgr','link','exp','batch','sync','next-step'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
     closeTodoEditModal();closeImgPreview();
     if(_editingNoteId)gntCancel();
   }
