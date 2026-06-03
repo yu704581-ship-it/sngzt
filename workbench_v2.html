@@ -2240,6 +2240,7 @@ function openProjLogModal(editId){
   if(titleEl)titleEl.textContent=log?'编辑版本记录':'记录版本';
   const verEl=document.getElementById('pl-ver');
   if(verEl)verEl.value=log?log.ver:'';
+  const ptEl=document.getElementById('pl-points');
   if(ptEl)ptEl.value=log?(log.points||[]).join('\n'):'';
   const dtEl=document.getElementById('pl-detail');
   if(dtEl)dtEl.value=log?log.detail||'':'';
