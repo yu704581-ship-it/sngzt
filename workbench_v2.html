@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v3.0</title>
+<title>工作台 v3.1</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -71,7 +71,6 @@ body::before{
 .sb-footer{margin-top:auto;border-top:0.5px solid rgba(0,0,0,0.06);padding:9px 12px;}
 /* heatmap tooltip + quick filters */
 .hm-tip{font-size:9.5px;color:rgba(99,102,241,0.85);min-height:13px;margin:3px 0 5px;text-align:center;transition:opacity .15s;}
-.hm-quick{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;}
 .hm-qbtn{font-size:9px;padding:2px 7px;border-radius:9px;border:0.5px solid rgba(0,0,0,0.1);background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.45);cursor:pointer;font-family:inherit;transition:all .1s;}
 .hm-qbtn:hover{background:rgba(99,102,241,0.07);color:#4338ca;}
 .hm-qbtn.active{background:rgba(99,102,241,0.1);color:#4338ca;border-color:rgba(99,102,241,0.25);}
@@ -300,6 +299,16 @@ body::before{
 .done-collapse-chevron{font-size:10px;color:rgba(0,0,0,0.22);margin-left:auto;transition:transform .2s;}
 .done-collapse-chevron.open{transform:rotate(90deg);}
 .todo-group-header{display:flex;align-items:center;gap:7px;padding:7px 2px;cursor:pointer;user-select:none;margin-top:4px;}
+.todo-row.is-overdue{background:rgba(254,242,242,0.7);border-color:rgba(239,68,68,0.15);}
+.todo-row.is-overdue .todo-title{color:#dc2626;}
+.todo-row.is-overdue .todo-date{color:#dc2626;}
+.todo-row.is-overdue .todo-circle{border-color:rgba(239,68,68,0.4);}
+.grp-overdue .todo-group-title{color:#dc2626;}
+.grp-overdue .todo-group-count{background:rgba(239,68,68,0.08);color:#dc2626;border-color:rgba(239,68,68,0.15);}
+.grp-today .todo-group-title{color:#4338ca;}
+.grp-today .todo-group-count{background:rgba(99,102,241,0.1);color:#4338ca;border-color:rgba(99,102,241,0.2);}
+.grp-unsched .todo-group-title{color:rgba(0,0,0,0.3);}
+.grp-unsched .todo-group-count{background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.35);}
 .todo-group-title{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:rgba(0,0,0,0.35);}
 .todo-group-count{font-size:10px;padding:1px 7px;border-radius:8px;background:rgba(0,0,0,0.05);color:rgba(0,0,0,0.4);}
 .todo-group-count.overdue{background:rgba(239,68,68,0.08);color:#dc2626;}
@@ -600,7 +609,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v3.0</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v3.1</span></div>
     <div class="sb-stats">
       <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -611,15 +620,7 @@ body::before{
     <div class="hm-lbl">最近记录</div>
     <div class="hm" id="heatmap"></div>
     <div class="hm-tip" id="hm-tip"></div>
-    <div class="hm-quick">
-      <button class="hm-qbtn overdue-btn" id="hmq-overdue" onclick="hmFilter('overdue')">逾期</button>
-      <button class="hm-qbtn" id="hmq-today" onclick="hmFilter('today')">今天</button>
-      <button class="hm-qbtn" id="hmq-tomorrow" onclick="hmFilter('tomorrow')">明天</button>
-      <button class="hm-qbtn" id="hmq-week" onclick="hmFilter('week')">本周</button>
-      <button class="hm-qbtn" id="hmq-nextweek" onclick="hmFilter('nextweek')">下周</button>
-      <button class="hm-qbtn" id="hmq-later" onclick="hmFilter('later')">更晚</button>
-      <button class="hm-qbtn active" id="hmq-all" onclick="hmFilter('all')">全部</button>
-    </div>
+
   </div>
   <div class="sb-div"></div>
   <div class="sb-nav">
@@ -1460,7 +1461,7 @@ function matchSearch(text,tags){
 }
 let capMode='todo'; /* 'todo' or 'note' */
 let _doneCollapsed=true;
-let _groupCollapsed={overdue:false,today:false,tomorrow:true,week:true,nextweek:true,later:true};
+let _groupCollapsed={overdue:false,today:false,tomorrow:true,week:true,nextweek:true,later:true,unsched:true};
 function setCapMode(m){
   capMode=m;
   /* update mode buttons */
@@ -1784,61 +1785,38 @@ function applyTodoDateFilter(list){
   return list;
 }
 function renderTodos(s){
-  const qf=window._hmQuickFilter||'all';
   let base=todos.filter(t=>(!activeTag||t.tags.includes(activeTag))&&matchSearch(t.text,t.tags));
-
-  if(qf==='all'){
-    /* grouped view */
-    const tk=todayKey();
-    const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
-    const[wMon,wSun]=weekBounds(0);const[nwMon,nwSun]=weekBounds(1);
-    const groups=[
-      {key:'overdue',label:'逾期',isOverdue:true,items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate<tk)},
-      {key:'today',label:'今天',items:base.filter(t=>!t.done&&(!t.isoDate||t.isoDate===tk))},
-      {key:'tomorrow',label:'明天',items:base.filter(t=>!t.done&&t.isoDate===tomK)},
-      {key:'week',label:'本周',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>tomK&&t.isoDate>=wMon&&t.isoDate<=wSun)},
-      {key:'nextweek',label:'下周',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>=nwMon&&t.isoDate<=nwSun)},
-      {key:'later',label:'更晚',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>nwSun)},
-    ];
-    let html='';
-    groups.forEach(g=>{
-      if(!g.items.length)return;
-      g.items.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-      const collapsed=_groupCollapsed[g.key];
-      const chev=collapsed?'▶':'';
-      html+=`<div class="todo-group-header" onclick="toggleGroup('${g.key}')">
-        <span class="todo-group-title">${g.label}</span>
-        <span class="todo-group-count${g.isOverdue?' overdue':''}">${g.items.length}</span>
-        <span class="todo-group-line"></span>
-        <span class="todo-group-chev${collapsed?'':' open'}">${chev||'▾'}</span>
-      </div>`;
-      if(!collapsed)html+='<div class="todo-wrap">'+renderChainedTodos(g.items)+'</div>';
-    });
-    /* done */
-    const done=base.filter(t=>t.done);
-    if(done.length){
-      html+='<div class="done-collapse-row" onclick="toggleDoneCollapse()">'
-        +'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 4.5l4 4 4-4" stroke="#22c55e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-        +'<span class="done-collapse-label">已完成</span>'
-        +'<span class="done-collapse-count">'+done.length+' 条</span>'
-        +'<span class="done-collapse-chevron'+(_doneCollapsed?'':' open')+'">▶</span>'
-        +'</div>';
-      if(!_doneCollapsed)html+='<div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';
-    }
-    if(!html)html='<div style="padding:40px 0;text-align:center;font-size:12px;color:rgba(0,0,0,0.3);">暂无待办 🎉</div>';
-    s.innerHTML=html;
-    return;
-  }
-
-  /* single-filter view */
-  let pending=applyTodoDateFilter(base.filter(t=>!t.done));
-  let done=applyTodoDateFilter(base.filter(t=>t.done));
-  pending.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-  const qfLabel={'today':'今天','tomorrow':'明天','week':'本周','nextweek':'下周','later':'更晚','overdue':'逾期'}[qf]||qf;
-  let html='<div class="todo-wrap">';
-  if(!pending.length)html+='<div style="padding:14px 13px;font-size:12px;color:rgba(0,0,0,0.3)">'+qfLabel+'没有待办任务 🎉</div>';
-  else html+=renderChainedTodos(pending);
-  html+=`</div>`;
+  const tk=todayKey();
+  const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
+  const[wMon,wSun]=weekBounds(0);const[nwMon,nwSun]=weekBounds(1);
+  const groups=[
+    {key:'overdue',label:'逾期',cls:'grp-overdue',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate<tk)},
+    {key:'today',label:'今天',cls:'grp-today',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate===tk)},
+    {key:'tomorrow',label:'明天',cls:'grp-normal',items:base.filter(t=>!t.done&&t.isoDate===tomK)},
+    {key:'week',label:'本周',cls:'grp-normal',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>tomK&&t.isoDate>=wMon&&t.isoDate<=wSun)},
+    {key:'nextweek',label:'下周',cls:'grp-normal',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>=nwMon&&t.isoDate<=nwSun)},
+    {key:'later',label:'更晚',cls:'grp-normal',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>nwSun)},
+    {key:'unsched',label:'待排期',cls:'grp-unsched',items:base.filter(t=>!t.done&&!t.isoDate)},
+  ];
+  let html='';
+  groups.forEach(g=>{
+    if(!g.items.length)return;
+    g.items.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+    const collapsed=_groupCollapsed[g.key];
+    /* add overdue class to rows */
+    const rowsHtml=g.key==='overdue'
+      ? renderChainedTodos(g.items).replace(/class="todo-row/g,'class="todo-row is-overdue')
+      : renderChainedTodos(g.items);
+    html+=`<div class="todo-group-header ${g.cls}" onclick="toggleGroup('${g.key}')">
+      <span class="todo-group-title">${g.label}</span>
+      <span class="todo-group-count">${g.items.length}</span>
+      <span class="todo-group-line"></span>
+      <span class="todo-group-chev${collapsed?'':' open'}">▾</span>
+    </div>`;
+    if(!collapsed)html+='<div class="todo-wrap">'+rowsHtml+'</div>';
+  });
+  /* done */
+  const done=base.filter(t=>t.done);
   if(done.length){
     html+='<div class="done-collapse-row" onclick="toggleDoneCollapse()">'
       +'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 4.5l4 4 4-4" stroke="#22c55e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -1848,6 +1826,7 @@ function renderTodos(s){
       +'</div>';
     if(!_doneCollapsed)html+='<div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';
   }
+  if(!html)html='<div style="padding:40px 0;text-align:center;font-size:12px;color:rgba(0,0,0,0.3);">暂无待办 🎉</div>';
   s.innerHTML=html;
 }
 function toggleGroup(key){
@@ -2517,8 +2496,7 @@ function renderTodoTagFlat(el){
 }
 function updateCounts(){
   document.getElementById('cnt-n').textContent=notes.length;
-  const pf=applyTodoDateFilter(todos.filter(t=>!t.done));
-  document.getElementById('cnt-t').textContent=pf.length;
+  document.getElementById('cnt-t').textContent=todos.filter(t=>!t.done).length;
   document.getElementById('cnt-e').textContent=notes.filter(n=>n.isExp).length;
 }
 
@@ -3045,16 +3023,12 @@ function hmSelectDate(key){
 function hmFilter(type){
   _hmSelectedDate=null;
   _noteFilterDate=null;
-  document.querySelectorAll('.hm-qbtn').forEach(b=>b.classList.remove('active'));
-  const btn=document.getElementById('hmq-'+type);if(btn)btn.classList.add('active');
   const badge=document.getElementById('date-filter-badge');
   const tip=document.getElementById('hm-tip');
   if(badge)badge.classList.remove('show');
   if(tip)tip.textContent='';
-  window._hmQuickFilter=type;
   renderHeatmap();
-  if(mode==='todos')renderTodos(document.getElementById('stream'));
-  else if(mode==='notes')renderNotes(document.getElementById('stream'));
+  if(mode==='notes')renderNotes(document.getElementById('stream'));
 }
 
 /* ── KEYBOARD ── */
