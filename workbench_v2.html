@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.9</title>
+<title>工作台 v3.0</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -566,13 +566,41 @@ body::before{
 .at-cal-d.at-cal-past{color:rgba(0,0,0,0.18);cursor:default;}
 .cap-date-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:9px;background:rgba(99,102,241,0.1);color:#4338ca;border:0.5px solid rgba(99,102,241,0.2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .cap-date-badge:hover{background:rgba(99,102,241,0.16);}
+/* ── NOTE TAG TREE ── */
+.note-tag-tree{padding:0 4px;}
+.ntree-parent{margin-bottom:1px;}
+.ntree-parent-row{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:7px;cursor:pointer;transition:background .1s;user-select:none;}
+.ntree-parent-row:hover{background:rgba(0,0,0,0.04);}
+.ntree-parent-row.active{background:rgba(99,102,241,0.08);}
+.ntree-chev{font-size:9px;color:rgba(0,0,0,0.25);transition:transform .15s;width:10px;flex-shrink:0;text-align:center;}
+.ntree-chev.open{transform:rotate(90deg);}
+.ntree-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.ntree-name{flex:1;font-size:11.5px;color:rgba(0,0,0,0.55);}
+.ntree-parent-row.active .ntree-name{color:#4338ca;font-weight:500;}
+.ntree-count{font-size:9px;color:rgba(0,0,0,0.25);}
+.ntree-children{padding-left:14px;margin-top:1px;margin-bottom:2px;}
+.ntree-child-row{display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:7px;cursor:pointer;transition:background .1s;margin-bottom:1px;user-select:none;}
+.ntree-child-row:hover{background:rgba(0,0,0,0.04);}
+.ntree-child-row.active{background:rgba(99,102,241,0.08);}
+.ntree-child-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;opacity:.7;}
+.ntree-child-name{flex:1;font-size:11px;color:rgba(0,0,0,0.45);}
+.ntree-child-row.active .ntree-child-name{color:#4338ca;font-weight:500;}
+/* todo tags flat */
+.todo-tag-tree{padding:0 4px;}
+.ttag-row{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:7px;cursor:pointer;transition:background .1s;margin-bottom:1px;}
+.ttag-row:hover{background:rgba(0,0,0,0.04);}
+.ttag-row.active{background:rgba(99,102,241,0.08);}
+.ttag-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.ttag-name{flex:1;font-size:11.5px;color:rgba(0,0,0,0.5);}
+.ttag-row.active .ttag-name{color:#4338ca;font-weight:500;}
+.ttag-count{font-size:9px;color:rgba(0,0,0,0.25);}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.9</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v3.0</span></div>
     <div class="sb-stats">
       <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -603,8 +631,8 @@ body::before{
   <div class="sb-div"></div>
   <div class="proj-sb-section" id="sb-proj-section" style="display:none;"></div>
   <div class="sb-div"></div>
-  <div class="sb-sec-lbl">标签 <button onclick="openModal('tagmgr')">+ 管理</button></div>
-  <div style="padding:2px 7px 8px" id="tag-list"></div>
+  <div class="sb-sec-lbl" id="tag-section-lbl">标签 <button id="tag-mgr-btn" onclick="openModal('tagmgr')">+ 管理</button></div>
+  <div id="tag-list"></div>
   <div class="sb-footer">
     <div class="sync-row">
       <div class="sync-dot" id="sync-dot"></div>
@@ -693,6 +721,56 @@ body::before{
 </div>
 
 <!-- TAG MANAGE MODAL -->
+<div class="modal-overlay" id="modal-note-tag" onclick="if(event.target===this)document.getElementById('modal-note-tag').classList.remove('open')">
+  <div class="modal" style="width:min(420px,92vw);">
+    <h3>新建笔记标签</h3>
+    <div class="pl-field">
+      <div class="pl-label">标签名称（支持 工作/看板 层级格式）</div>
+      <input class="pl-inp" id="nt-name" placeholder="工作/看板 或 生活/储蓄" />
+    </div>
+    <div class="pl-field">
+      <div class="pl-label">颜色</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="nt-color-row">
+        <div style="width:20px;height:20px;border-radius:50%;background:#6366f1;cursor:pointer;border:2px solid #6366f1;" data-color="#6366f1" onclick="selectNtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#0ea5e9;cursor:pointer;" data-color="#0ea5e9" onclick="selectNtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#22c55e;cursor:pointer;" data-color="#22c55e" onclick="selectNtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#f59e0b;cursor:pointer;" data-color="#f59e0b" onclick="selectNtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#ef4444;cursor:pointer;" data-color="#ef4444" onclick="selectNtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#8b5cf6;cursor:pointer;" data-color="#8b5cf6" onclick="selectNtColor(this)"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('modal-note-tag').classList.remove('open')">取消</button>
+      <button class="btn-primary" onclick="confirmNewNoteTag()">创建</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-todo-tag" onclick="if(event.target===this)document.getElementById('modal-todo-tag').classList.remove('open')">
+  <div class="modal" style="width:min(420px,92vw);">
+    <h3>新建待办标签</h3>
+    <div class="pl-field">
+      <div class="pl-label">标签名称</div>
+      <input class="pl-inp" id="tt-name" placeholder="如：工作待办、紧急、待跟进" />
+    </div>
+    <div class="pl-field">
+      <div class="pl-label">颜色</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="tt-color-row">
+        <div style="width:20px;height:20px;border-radius:50%;background:#6366f1;cursor:pointer;border:2px solid #6366f1;" data-color="#6366f1" onclick="selectTtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#0ea5e9;cursor:pointer;" data-color="#0ea5e9" onclick="selectTtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#22c55e;cursor:pointer;" data-color="#22c55e" onclick="selectTtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#f59e0b;cursor:pointer;" data-color="#f59e0b" onclick="selectTtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#ef4444;cursor:pointer;" data-color="#ef4444" onclick="selectTtColor(this)"></div>
+        <div style="width:20px;height:20px;border-radius:50%;background:#8b5cf6;cursor:pointer;" data-color="#8b5cf6" onclick="selectTtColor(this)"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('modal-todo-tag').classList.remove('open')">取消</button>
+      <button class="btn-primary" onclick="confirmNewTodoTag()">创建</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-tagmgr" onclick="if(event.target===this)closeModal('tagmgr')">
   <div class="modal">
     <h3>管理标签</h3>
@@ -967,21 +1045,29 @@ let TAGS=[
   {id:'ops',label:'#运维',color:'#ef4444'},
   {id:'mgmt',label:'#管理',color:'#6366f1'},
 ];
+/* NOTE_TAGS: hierarchical, supports 工作/看板 format */
+let NOTE_TAGS=[];
+/* TODO_TAGS: flat, only shown in todo tab inline */
+let TODO_TAGS=[];
+/* track note tag tree collapse state */
+let _noteTagCollapsed={};
 
 /* ── GH FILE NAMES ── */
 const GH_FILES={
   notes:'notes.json',
   todos:'todos.json',
   experiences:'experiences.json',
-  tags:'tags.json'
+  tags:'tags.json',
+  note_tags:'note_tags.json',
+  todo_tags:'todo_tags.json'
 };
 /* sha cache per file */
-let _sha={notes:null,todos:null,experiences:null,tags:null};
+let _sha={notes:null,todos:null,experiences:null,tags:null,note_tags:null,todo_tags:null};
 let _syncTimer=null;
 let _pulling=false;
 let _pushing=false;
 /* dirty flags — only push files that actually changed */
-let _dirty={notes:false,todos:false,experiences:false,tags:false,projects:false};
+let _dirty={notes:false,todos:false,experiences:false,tags:false,projects:false,note_tags:false,todo_tags:false};
 
 let notes=[];
 let todos=[];
@@ -1008,9 +1094,18 @@ let _linkTarget=null;
 function uid(){return String(Date.now())+String(Math.floor(Math.random()*9000+1000));}
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function getTag(id){return TAGS.find(t=>t.id===id);}
-function tagLabel(id){const t=getTag(id);return t?t.label:'#'+id;}
+function getTag(id){
+  return NOTE_TAGS.find(t=>t.id===id)||TODO_TAGS.find(t=>t.id===id)||TAGS.find(t=>t.id===id);
+}
+function tagLabel(id){
+  const t=getTag(id);
+  if(!t)return'#'+id;
+  /* for note tags show last segment; for todo tags show with # */
+  if(NOTE_TAGS.find(x=>x.id===id))return t.label.split('/').pop();
+  return'#'+t.label;
+}
 function tagColor(id){const t=getTag(id);return t?t.color:'#888';}
+function tagFullLabel(id){const t=getTag(id);return t?t.label:'#'+id;}
 
 function toast(msg){
   const el=document.getElementById('toast');
@@ -1038,12 +1133,18 @@ function loadLocal(){
       if(d.experiences)experiences=d.experiences;
       if(d.tags)TAGS=d.tags;
       if(d.projects)projects=d.projects;
+      if(d.note_tags)NOTE_TAGS=d.note_tags;
+      if(d.todo_tags)TODO_TAGS=d.todo_tags;
     }
   }catch(e){}
+  /* migrate legacy TAGS into NOTE_TAGS and TODO_TAGS if empty */
+  if(!NOTE_TAGS.length&&!TODO_TAGS.length&&TAGS.length){
+    migrateTagsToSplit();
+  }
   if(projects.length&&!_activeProject)_activeProject=projects[0].id;
 }
 function saveLocal(){
-  localStorage.setItem('wb_v22',JSON.stringify({notes,todos,experiences,tags:TAGS,projects}));
+  localStorage.setItem('wb_v22',JSON.stringify({notes,todos,experiences,tags:TAGS,projects,note_tags:NOTE_TAGS,todo_tags:TODO_TAGS}));
 }
 /* granular save — mark only the changed dataset dirty */
 function saveNotes(){saveLocal();_dirty.notes=true;schedulePush();}
@@ -1051,8 +1152,26 @@ function saveProjects(){saveLocal();_dirty.projects=true;schedulePush();}
 function saveTodos(){saveLocal();_dirty.todos=true;schedulePush();}
 function saveExp(){saveLocal();_dirty.experiences=true;schedulePush();}
 function saveTags(){saveLocal();_dirty.tags=true;schedulePush();}
+function saveNoteTags(){saveLocal();_dirty.note_tags=true;schedulePush();}
+function saveTodoTags(){saveLocal();_dirty.todo_tags=true;schedulePush();}
 /* save() marks everything dirty — used when multiple datasets change at once */
 function save(){saveLocal();_dirty.notes=true;_dirty.todos=true;_dirty.experiences=true;_dirty.tags=true;schedulePush();}
+/* migrate old unified TAGS into split note/todo tags */
+function migrateTagsToSplit(){
+  TAGS.forEach(t=>{
+    /* tags starting with # are todo-style, others are note-style */
+    const isHash=t.label.startsWith('#');
+    if(isHash){
+      if(!TODO_TAGS.find(x=>x.id===t.id))TODO_TAGS.push({id:t.id,label:t.label.replace(/^#/,''),color:t.color});
+    }else{
+      if(!NOTE_TAGS.find(x=>x.id===t.id))NOTE_TAGS.push({id:t.id,label:t.label,color:t.color});
+    }
+  });
+  /* if still empty, copy all as todo tags since existing data uses # prefix */
+  if(!NOTE_TAGS.length&&!TODO_TAGS.length){
+    TAGS.forEach(t=>TODO_TAGS.push({id:t.id,label:t.label.replace(/^#/,''),color:t.color}));
+  }
+}
 
 function previewImg(src){document.getElementById('img-preview').src=src;document.getElementById('img-overlay').classList.add('open');}
 function closeImgPreview(){document.getElementById('img-overlay').classList.remove('open');}
@@ -1188,7 +1307,7 @@ async function ghPushAll(){
   _pushing=true;
   syncBarStart();
   setSyncStatus('ing','同步中…');
-  const dataMap={notes,todos,experiences,tags:TAGS,projects};
+  const dataMap={notes,todos,experiences,tags:TAGS,projects,note_tags:NOTE_TAGS,todo_tags:TODO_TAGS};
   const total=toSync.length;
   let done=0;
   try{
@@ -1214,12 +1333,14 @@ async function ghPullAll(){
   _pulling=true;
   setSyncStatus('ing','加载中…');
   try{
-    const [rn,rt,re,rtags,rproj]=await Promise.all([
-      ghPullFile('notes'),ghPullFile('todos'),ghPullFile('experiences'),ghPullFile('tags'),ghPullFile('projects')
+    const [rn,rt,re,rtags,rproj,rntags,rttags]=await Promise.all([
+      ghPullFile('notes'),ghPullFile('todos'),ghPullFile('experiences'),ghPullFile('tags'),ghPullFile('projects'),ghPullFile('note_tags'),ghPullFile('todo_tags')
     ]);
     if(rn)notes=rn;
     if(rt)todos=rt;
     if(rproj)projects=rproj;
+    if(rntags)NOTE_TAGS=rntags;
+    if(rttags)TODO_TAGS=rttags;
     if(re)experiences=re;
     if(rtags&&Array.isArray(rtags))TAGS=rtags;
     /* if any file missing, push it */
@@ -2211,7 +2332,9 @@ function openTagModal(type,id){
   if(type==='compose')current=[...pendingSelTags];
   else if(type==='note')current=(notes.find(n=>String(n.id)===String(id))||{tags:[]}).tags;
   else if(type==='todo')current=(todos.find(t=>String(t.id)===String(id))||{tags:[]}).tags;
-  document.getElementById('tag-modal-grid').innerHTML=TAGS.map(t=>`<div class="tag-opt${current.includes(t.id)?' sel':''}" onclick="this.classList.toggle('sel')" data-id="${t.id}">${t.label}</div>`).join('');
+  const isTodo=type==='todo';
+  const pool=isTodo?(TODO_TAGS.length?TODO_TAGS:TAGS):(NOTE_TAGS.length?NOTE_TAGS:TAGS);
+  document.getElementById('tag-modal-grid').innerHTML=pool.map(t=>`<div class="tag-opt${current.includes(t.id)?' sel':''}" onclick="this.classList.toggle('sel')" data-id="${t.id}">${isTodo?'#'+t.label:t.label}</div>`).join('');
   openModal('tag');
 }
 function confirmTags(){
@@ -2298,16 +2421,99 @@ function openModal(name){
 function closeModal(name){document.getElementById('modal-'+name).classList.remove('open');}
 
 /* ── SIDEBAR ── */
+/* helper: get note count for a tag label prefix */
+function noteCountForTag(labelPrefix){
+  return notes.filter(n=>(n.tags||[]).some(tid=>{
+    const t=NOTE_TAGS.find(x=>x.id===tid);
+    return t&&(t.label===labelPrefix||t.label.startsWith(labelPrefix+'/'));
+  })).length;
+}
+function todoCountForTag(tid){
+  return todos.filter(t=>(t.tags||[]).includes(tid)).length;
+}
 function renderSidebarTags(){
-  const el=document.getElementById('tag-list');
-  const counts={};TAGS.forEach(t=>{counts[t.id]=0;});
-  const pool=mode==='notes'?notes:mode==='todos'?todos:experiences;
-  pool.forEach(item=>item.tags&&item.tags.forEach(tid=>{if(counts[tid]!==undefined)counts[tid]++;}));
-  el.innerHTML=TAGS.map(t=>`<div class="tag-row${activeTag===t.id?' active-tag':''}" onclick="filterByTag('${t.id}')">
-    <div class="tag-dot" style="background:${t.color}"></div>
-    <span>${t.label}</span>
-    <span class="tag-count">${counts[t.id]||0}</span>
-  </div>`).join('');
+  const el=document.getElementById('tag-list');if(!el)return;
+  const lbl=document.getElementById('tag-section-lbl');
+  const btn=document.getElementById('tag-mgr-btn');
+
+  if(mode==='notes'||mode==='exp'){
+    if(lbl)lbl.childNodes[0].textContent='笔记标签 ';
+    if(btn)btn.textContent='+ 新建';
+    if(btn)btn.onclick=()=>openNoteTagModal();
+    renderNoteTagTree(el);
+  }else if(mode==='todos'){
+    if(lbl)lbl.childNodes[0].textContent='待办标签 ';
+    if(btn)btn.textContent='+ 新建';
+    if(btn)btn.onclick=()=>openTodoTagModal();
+    renderTodoTagFlat(el);
+  }else{
+    el.innerHTML='';
+  }
+}
+function renderNoteTagTree(el){
+  /* parse NOTE_TAGS into tree: group by first segment of label */
+  const parents={};
+  NOTE_TAGS.forEach(t=>{
+    const parts=t.label.split('/');
+    const parent=parts[0];
+    if(!parents[parent])parents[parent]={label:parent,color:t.color,children:[]};
+    if(parts.length>1)parents[parent].children.push({id:t.id,label:parts.slice(1).join('/'),color:t.color,fullLabel:t.label});
+    else{parents[parent].id=t.id;parents[parent].fullLabel=t.label;}
+  });
+  let html='<div class="note-tag-tree">';
+  Object.entries(parents).forEach(([pLabel,p])=>{
+    const collapsed=_noteTagCollapsed[pLabel];
+    const hasChildren=p.children.length>0;
+    const pCount=noteCountForTag(pLabel);
+    const isActive=activeTag&&NOTE_TAGS.find(x=>x.id===activeTag)?.label.startsWith(pLabel);
+    html+=`<div class="ntree-parent">
+      <div class="ntree-parent-row${isActive?' active':''}" onclick="toggleNoteTagParent('${pLabel}',${p.id?`'${p.id}'`:'null'})">
+        <span class="ntree-chev${hasChildren?(collapsed?'':' open'):''}">${hasChildren?'▶':''}</span>
+        <span class="ntree-dot" style="background:${p.color||'#6366f1'};"></span>
+        <span class="ntree-name">${esc(pLabel)}</span>
+        <span class="ntree-count">${pCount}</span>
+      </div>`;
+    if(hasChildren&&!collapsed){
+      html+='<div class="ntree-children">';
+      p.children.forEach(c=>{
+        const cCount=noteCountForTag(c.fullLabel);
+        const cActive=activeTag===c.id;
+        html+=`<div class="ntree-child-row${cActive?' active':''}" onclick="filterByNoteTag('${c.id}')">
+          <span class="ntree-child-dot" style="background:${c.color||p.color||'#6366f1'};"></span>
+          <span class="ntree-child-name">${esc(c.label)}</span>
+          <span class="ntree-count">${cCount}</span>
+        </div>`;
+      });
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+function toggleNoteTagParent(pLabel,parentId){
+  _noteTagCollapsed[pLabel]=!_noteTagCollapsed[pLabel];
+  if(parentId)filterByNoteTag(parentId);
+  else{activeTag=null;renderSidebarTags();render();}
+}
+function filterByNoteTag(id){
+  activeTag=id;
+  renderSidebarTags();
+  render();
+}
+function renderTodoTagFlat(el){
+  let html='<div class="todo-tag-tree">';
+  TODO_TAGS.forEach(t=>{
+    const cnt=todoCountForTag(t.id);
+    const isActive=activeTag===t.id;
+    html+=`<div class="ttag-row${isActive?' active':''}" onclick="filterByTag('${t.id}')">
+      <span class="ttag-dot" style="background:${t.color||'#6366f1'};"></span>
+      <span class="ttag-name">#${esc(t.label)}</span>
+      <span class="ttag-count">${cnt}</span>
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
 }
 function updateCounts(){
   document.getElementById('cnt-n').textContent=notes.length;
@@ -2726,6 +2932,47 @@ function openAtPicker(){
     });
   },50);
 }
+/* ── NOTE/TODO TAG MANAGEMENT ── */
+let _ntColor='#6366f1';
+let _ttColor='#6366f1';
+function openNoteTagModal(){
+  _ntColor='#6366f1';
+  const inp=document.getElementById('nt-name');if(inp)inp.value='';
+  document.querySelectorAll('#nt-color-row div').forEach(d=>{d.style.border=d.dataset.color===_ntColor?'2px solid '+d.dataset.color:'none';});
+  document.getElementById('modal-note-tag').classList.add('open');
+  setTimeout(()=>document.getElementById('nt-name')&&document.getElementById('nt-name').focus(),80);
+}
+function selectNtColor(el){
+  _ntColor=el.dataset.color;
+  document.querySelectorAll('#nt-color-row div').forEach(d=>{d.style.border=d.dataset.color===_ntColor?'2px solid '+d.dataset.color:'none';});
+}
+function confirmNewNoteTag(){
+  const name=document.getElementById('nt-name')&&document.getElementById('nt-name').value.trim();
+  if(!name){toast('请输入标签名称');return;}
+  const id='nt_'+uid();
+  NOTE_TAGS.push({id,label:name,color:_ntColor});
+  document.getElementById('modal-note-tag').classList.remove('open');
+  saveNoteTags();renderSidebarTags();toast('笔记标签已创建');
+}
+function openTodoTagModal(){
+  _ttColor='#6366f1';
+  const inp=document.getElementById('tt-name');if(inp)inp.value='';
+  document.querySelectorAll('#tt-color-row div').forEach(d=>{d.style.border=d.dataset.color===_ttColor?'2px solid '+d.dataset.color:'none';});
+  document.getElementById('modal-todo-tag').classList.add('open');
+  setTimeout(()=>document.getElementById('tt-name')&&document.getElementById('tt-name').focus(),80);
+}
+function selectTtColor(el){
+  _ttColor=el.dataset.color;
+  document.querySelectorAll('#tt-color-row div').forEach(d=>{d.style.border=d.dataset.color===_ttColor?'2px solid '+d.dataset.color:'none';});
+}
+function confirmNewTodoTag(){
+  const name=document.getElementById('tt-name')&&document.getElementById('tt-name').value.trim();
+  if(!name){toast('请输入标签名称');return;}
+  const id='tt_'+uid();
+  TODO_TAGS.push({id,label:name,color:_ttColor});
+  document.getElementById('modal-todo-tag').classList.remove('open');
+  saveTodoTags();renderSidebarTags();toast('待办标签已创建');
+}
 /* ── HEATMAP ── */
 /* ── HEATMAP FILTER STATE ── */
 let _hmSelectedDate=null;
@@ -2815,7 +3062,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();spOpen();return;}
   if(e.key==='Escape'){
     if(document.getElementById('search-panel').classList.contains('open')){spClose();return;}
-    ['tag','tagmgr','link','exp','batch','sync','next-step','proj-log','new-proj','thought'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
+    ['tag','tagmgr','link','exp','batch','sync','next-step','proj-log','new-proj','thought','note-tag','todo-tag'].forEach(n=>{document.getElementById('modal-'+n).classList.remove('open');});document.getElementById('modal-exp-conclusion').classList.remove('open');
     closeTodoEditModal();closeImgPreview();
     if(_editingNoteId)gntCancel();
   }
