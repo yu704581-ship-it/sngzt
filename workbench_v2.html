@@ -2911,12 +2911,18 @@ function renderAtPicker(){
 
   /* position fixed popup below input */
   const inp=document.getElementById('cap-todo-inp');
-  let popStyle='';
+  /* position below input using fixed coords */
+  let popLeft=13,popTop=80;
   if(inp){
     const r=inp.getBoundingClientRect();
-    popStyle=`left:${r.left}px;top:${r.bottom+6}px;`;
+    const capCard=inp.closest('.cap-card');
+    const cardR=capCard?capCard.getBoundingClientRect():r;
+    popLeft=Math.max(8,cardR.left+10);
+    popTop=cardR.bottom+4;
+    /* clamp to viewport */
+    if(popTop+400>window.innerHeight)popTop=Math.max(8,cardR.top-410);
   }
-  wrap.innerHTML=`<div class="at-popup" id="at-popup" style="${popStyle}">
+  wrap.innerHTML=`<div class="at-popup" id="at-popup" style="left:${popLeft}px;top:${popTop}px;">
     <div class="at-quick">
       ${quicks.map(q=>`<button class="at-q${_atDate===q.iso?' at-sel':''}" onclick="selectAtDate('${q.iso}')">${q.label}</button>`).join('')}
     </div>
