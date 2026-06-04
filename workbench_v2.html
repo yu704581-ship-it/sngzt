@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v3.1</title>
+<title>工作台 v3.1A</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -298,22 +298,21 @@ body::before{
 .done-collapse-count{font-size:10px;padding:1px 7px;border-radius:8px;background:rgba(34,197,94,0.1);color:#047857;border:0.5px solid rgba(34,197,94,0.2);}
 .done-collapse-chevron{font-size:10px;color:rgba(0,0,0,0.22);margin-left:auto;transition:transform .2s;}
 .done-collapse-chevron.open{transform:rotate(90deg);}
-.todo-group-header{display:flex;align-items:center;gap:7px;padding:7px 2px;cursor:pointer;user-select:none;margin-top:4px;}
+.todo-group-header{display:flex;align-items:center;gap:7px;padding:8px 13px;background:rgba(255,255,255,0.55);border:0.5px solid rgba(255,255,255,0.8);border-radius:9px;cursor:pointer;user-select:none;margin-top:4px;transition:background .12s;}
+.todo-group-header:hover{background:rgba(255,255,255,0.75);}
 .todo-row.is-overdue{background:rgba(254,242,242,0.7);border-color:rgba(239,68,68,0.15);}
 .todo-row.is-overdue .todo-title{color:#dc2626;}
 .todo-row.is-overdue .todo-date{color:#dc2626;}
 .todo-row.is-overdue .todo-circle{border-color:rgba(239,68,68,0.4);}
 .grp-overdue .todo-group-title{color:#dc2626;}
-.grp-overdue .todo-group-count{background:rgba(239,68,68,0.08);color:#dc2626;border-color:rgba(239,68,68,0.15);}
+.grp-overdue .todo-group-count{background:rgba(239,68,68,0.08);color:#dc2626;}
 .grp-today .todo-group-title{color:#4338ca;}
-.grp-today .todo-group-count{background:rgba(99,102,241,0.1);color:#4338ca;border-color:rgba(99,102,241,0.2);}
+.grp-today .todo-group-count{background:rgba(99,102,241,0.1);color:#4338ca;}
 .grp-unsched .todo-group-title{color:rgba(0,0,0,0.3);}
-.grp-unsched .todo-group-count{background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.35);}
-.todo-group-title{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:rgba(0,0,0,0.35);}
+.grp-unsched .todo-group-count{background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.3);}
+.todo-group-title{font-size:11px;font-weight:500;color:rgba(0,0,0,0.45);flex:1;}
 .todo-group-count{font-size:10px;padding:1px 7px;border-radius:8px;background:rgba(0,0,0,0.05);color:rgba(0,0,0,0.4);}
-.todo-group-count.overdue{background:rgba(239,68,68,0.08);color:#dc2626;}
-.todo-group-line{flex:1;height:0.5px;background:rgba(0,0,0,0.07);}
-.todo-group-chev{font-size:9px;color:rgba(0,0,0,0.25);transition:transform .2s;}
+.todo-group-chev{font-size:10px;color:rgba(0,0,0,0.22);transition:transform .2s;margin-left:auto;}
 .todo-group-chev.open{transform:rotate(90deg);}
 /* next step modal */
 .next-step-btn{display:none;font-size:10px;padding:2px 9px;border-radius:9px;border:0.5px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.06);color:#4338ca;cursor:pointer;font-family:inherit;margin-top:5px;transition:all .12s;}
@@ -609,7 +608,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v3.1</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v3.1A</span></div>
     <div class="sb-stats">
       <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -1481,7 +1480,13 @@ function setCapMode(m){
   if(edit)edit.style.display=m==='note'?'':'none';
   if(noteBar)noteBar.style.display=m==='note'?'flex':'none';
   if(todoBar)todoBar.style.display=m==='todo'?'flex':'none';
-  if(gntb&&m==='todo'&&!_editingNoteId)gntb.classList.remove('show');
+  /* show global toolbar for note capture mode */
+  if(gntb){
+    if(m==='note'){gntb.classList.add('show');}
+    else if(m==='todo'&&!_editingNoteId){gntb.classList.remove('show');}
+  }
+  /* ensure note edit area has proper min-height */
+  if(edit&&m==='note'){edit.style.minHeight='80px';}
 }
 function render(){
   const s=document.getElementById('stream'),cap=document.getElementById('capture-area');
@@ -1809,9 +1814,8 @@ function renderTodos(s){
       : renderChainedTodos(g.items);
     html+=`<div class="todo-group-header ${g.cls}" onclick="toggleGroup('${g.key}')">
       <span class="todo-group-title">${g.label}</span>
-      <span class="todo-group-count">${g.items.length}</span>
-      <span class="todo-group-line"></span>
-      <span class="todo-group-chev${collapsed?'':' open'}">▾</span>
+      <span class="todo-group-count">${g.items.length} 条</span>
+      <span class="todo-group-chev${collapsed?'':' open'}">▶</span>
     </div>`;
     if(!collapsed)html+='<div class="todo-wrap">'+rowsHtml+'</div>';
   });
@@ -1874,7 +1878,7 @@ function todoRowHTML(t){
     <div class="todo-body" ondblclick="${dblHandler}" style="${t.done||t.locked?'':'cursor:pointer;'}" title="${t.done||t.locked?'':'双击编辑'}">
       <div class="todo-title${t.done?' done':t.locked?' locked-t':''}" id="tt-${t.id}">${renderRichText(t.text)}${t.pinned&&!t.done?' <span style="font-size:10px;opacity:0.5">📌</span>':''}</div>
       <div class="todo-sub">
-        <span class="todo-date">${t.date}</span>
+        <span class="todo-date">${t.done&&t.doneAt?"已完成 · "+t.doneAt:t.date}</span>
         ${t.tags.map(tg=>`<span class="todo-tag-pill" style="color:${tagColor(tg)}">${tagLabel(tg)}</span>`).join('')}
         ${badge}
       </div>
@@ -1882,7 +1886,7 @@ function todoRowHTML(t){
       ${remarkHtml}
     </div>
     <div class="todo-actions">
-      ${t.done?`<button class="next-step-btn" onclick="openNextStepModal('${t.id}')">+ 接下一步</button>`:(!t.locked?`<button class="t-btn chain-btn" onclick="startChainAdd('${t.id}')">+ 接下一步</button>`:'')}
+      ${t.done?`<button class="next-step-btn" onclick="openNextStepModal('${t.id}')">+ 接下一步</button>`:''}
       ${!t.done?`<button class="t-btn${t.pinned?' pin-active':''}" onclick="togglePin('${t.id}')">${t.pinned?'取消置顶':'📌 置顶'}</button>`:''}
       <button class="t-btn" onclick="openTagModal('todo','${t.id}')">标签</button>
       <button class="t-btn" onclick="deleteTodo('${t.id}')" style="color:#ef4444">删除</button>
@@ -2165,7 +2169,18 @@ function saveExpConclusion(){
 /* remark functions replaced by todo edit modal *//* remark functions replaced by todo edit modal */
 function toggleTodo(id){
   const t=todos.find(x=>String(x.id)===String(id));if(!t||t.locked)return;
-  t.done=!t.done;t.date=t.done?'已完成':'今天';
+  t.done=!t.done;
+  if(t.done){
+    const now=new Date();
+    t.doneAt=(now.getMonth()+1)+'/'+(now.getDate())+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+    t.date='已完成';
+  }else{
+    t.doneAt=null;
+    const isoD=t.isoDate;
+    const tk=todayKey();
+    const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
+    t.date=!isoD?'今天':isoD===tk?'今天':isoD===tomK?'明天':((new Date(isoD+'T00:00:00').getMonth()+1)+'/'+(new Date(isoD+'T00:00:00').getDate()));
+  }
   if(t.done&&t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n){n.locked=false;toast('完成！下一步已解锁 →');}}
   else if(t.done)toast('任务完成 ✓');
   else{if(t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n)n.locked=true;}}
