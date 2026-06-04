@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 v2.8B</title>
+<title>工作台 v2.9</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
@@ -299,6 +299,13 @@ body::before{
 .done-collapse-count{font-size:10px;padding:1px 7px;border-radius:8px;background:rgba(34,197,94,0.1);color:#047857;border:0.5px solid rgba(34,197,94,0.2);}
 .done-collapse-chevron{font-size:10px;color:rgba(0,0,0,0.22);margin-left:auto;transition:transform .2s;}
 .done-collapse-chevron.open{transform:rotate(90deg);}
+.todo-group-header{display:flex;align-items:center;gap:7px;padding:7px 2px;cursor:pointer;user-select:none;margin-top:4px;}
+.todo-group-title{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:rgba(0,0,0,0.35);}
+.todo-group-count{font-size:10px;padding:1px 7px;border-radius:8px;background:rgba(0,0,0,0.05);color:rgba(0,0,0,0.4);}
+.todo-group-count.overdue{background:rgba(239,68,68,0.08);color:#dc2626;}
+.todo-group-line{flex:1;height:0.5px;background:rgba(0,0,0,0.07);}
+.todo-group-chev{font-size:9px;color:rgba(0,0,0,0.25);transition:transform .2s;}
+.todo-group-chev.open{transform:rotate(90deg);}
 /* next step modal */
 .next-step-btn{display:none;font-size:10px;padding:2px 9px;border-radius:9px;border:0.5px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.06);color:#4338ca;cursor:pointer;font-family:inherit;margin-top:5px;transition:all .12s;}
 .next-step-btn:hover{background:rgba(99,102,241,0.12);}
@@ -539,7 +546,7 @@ body::before{
 .pl-tag-add{font-size:10px;padding:3px 9px;border-radius:9px;border:0.5px dashed rgba(0,0,0,0.15);background:none;color:rgba(0,0,0,0.35);cursor:pointer;font-family:inherit;}
 .proj-create-modal{width:min(420px,92vw);}
 /* ── @ DATE PICKER ── */
-.at-popup{position:absolute;left:10px;top:calc(100% + 4px);background:rgba(255,255,255,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:0.5px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);width:252px;z-index:200;overflow:hidden;animation:slideUp .15s ease;}
+.at-popup{position:fixed;background:rgba(255,255,255,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:0.5px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);width:252px;z-index:9999;overflow:hidden;animation:slideUp .15s ease;}
 .at-quick{padding:7px 8px 5px;display:flex;flex-wrap:wrap;gap:3px;border-bottom:0.5px solid rgba(0,0,0,0.06);}
 .at-q{font-size:11px;padding:4px 10px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.1);background:rgba(0,0,0,0.03);color:rgba(0,0,0,0.55);cursor:pointer;transition:all .1s;font-family:inherit;}
 .at-q:hover{background:rgba(99,102,241,0.08);color:#4338ca;border-color:rgba(99,102,241,0.2);}
@@ -565,7 +572,7 @@ body::before{
 
 <div class="sidebar">
   <div class="sb-head">
-    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.8B</span></div>
+    <div class="sb-brand"><span class="sb-title">工作台</span><span class="sb-ver">v2.9</span></div>
     <div class="sb-stats">
       <div class="sb-stat" onclick="switchMode('notes')" style="cursor:pointer;"><span class="sb-num" id="cnt-n">0</span><span class="sb-lbl">笔记</span></div>
       <div class="sb-stat" onclick="switchMode('todos')" style="cursor:pointer;"><span class="sb-num" id="cnt-t">0</span><span class="sb-lbl">待办</span></div>
@@ -578,12 +585,12 @@ body::before{
     <div class="hm-tip" id="hm-tip"></div>
     <div class="hm-quick">
       <button class="hm-qbtn overdue-btn" id="hmq-overdue" onclick="hmFilter('overdue')">逾期</button>
-      <button class="hm-qbtn active" id="hmq-today" onclick="hmFilter('today')">今天</button>
+      <button class="hm-qbtn" id="hmq-today" onclick="hmFilter('today')">今天</button>
       <button class="hm-qbtn" id="hmq-tomorrow" onclick="hmFilter('tomorrow')">明天</button>
       <button class="hm-qbtn" id="hmq-week" onclick="hmFilter('week')">本周</button>
       <button class="hm-qbtn" id="hmq-nextweek" onclick="hmFilter('nextweek')">下周</button>
       <button class="hm-qbtn" id="hmq-later" onclick="hmFilter('later')">更晚</button>
-      <button class="hm-qbtn" id="hmq-all" onclick="hmFilter('all')">全部</button>
+      <button class="hm-qbtn active" id="hmq-all" onclick="hmFilter('all')">全部</button>
     </div>
   </div>
   <div class="sb-div"></div>
@@ -1332,6 +1339,7 @@ function matchSearch(text,tags){
 }
 let capMode='todo'; /* 'todo' or 'note' */
 let _doneCollapsed=true;
+let _groupCollapsed={overdue:false,today:false,tomorrow:true,week:true,nextweek:true,later:true};
 function setCapMode(m){
   capMode=m;
   /* update mode buttons */
@@ -1655,11 +1663,57 @@ function applyTodoDateFilter(list){
   return list;
 }
 function renderTodos(s){
+  const qf=window._hmQuickFilter||'all';
   let base=todos.filter(t=>(!activeTag||t.tags.includes(activeTag))&&matchSearch(t.text,t.tags));
+
+  if(qf==='all'){
+    /* grouped view */
+    const tk=todayKey();
+    const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
+    const[wMon,wSun]=weekBounds(0);const[nwMon,nwSun]=weekBounds(1);
+    const groups=[
+      {key:'overdue',label:'逾期',isOverdue:true,items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate<tk)},
+      {key:'today',label:'今天',items:base.filter(t=>!t.done&&(!t.isoDate||t.isoDate===tk))},
+      {key:'tomorrow',label:'明天',items:base.filter(t=>!t.done&&t.isoDate===tomK)},
+      {key:'week',label:'本周',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>tomK&&t.isoDate>=wMon&&t.isoDate<=wSun)},
+      {key:'nextweek',label:'下周',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>=nwMon&&t.isoDate<=nwSun)},
+      {key:'later',label:'更晚',items:base.filter(t=>!t.done&&t.isoDate&&t.isoDate>nwSun)},
+    ];
+    let html='';
+    groups.forEach(g=>{
+      if(!g.items.length)return;
+      g.items.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+      const collapsed=_groupCollapsed[g.key];
+      const chev=collapsed?'▶':'';
+      html+=`<div class="todo-group-header" onclick="toggleGroup('${g.key}')">
+        <span class="todo-group-title">${g.label}</span>
+        <span class="todo-group-count${g.isOverdue?' overdue':''}">${g.items.length}</span>
+        <span class="todo-group-line"></span>
+        <span class="todo-group-chev${collapsed?'':' open'}">${chev||'▾'}</span>
+      </div>`;
+      if(!collapsed)html+='<div class="todo-wrap">'+renderChainedTodos(g.items)+'</div>';
+    });
+    /* done */
+    const done=base.filter(t=>t.done);
+    if(done.length){
+      html+='<div class="done-collapse-row" onclick="toggleDoneCollapse()">'
+        +'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 4.5l4 4 4-4" stroke="#22c55e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        +'<span class="done-collapse-label">已完成</span>'
+        +'<span class="done-collapse-count">'+done.length+' 条</span>'
+        +'<span class="done-collapse-chevron'+(_doneCollapsed?'':' open')+'">▶</span>'
+        +'</div>';
+      if(!_doneCollapsed)html+='<div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';
+    }
+    if(!html)html='<div style="padding:40px 0;text-align:center;font-size:12px;color:rgba(0,0,0,0.3);">暂无待办 🎉</div>';
+    s.innerHTML=html;
+    return;
+  }
+
+  /* single-filter view */
   let pending=applyTodoDateFilter(base.filter(t=>!t.done));
   let done=applyTodoDateFilter(base.filter(t=>t.done));
   pending.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-  const qfLabel={'today':'今天','tomorrow':'明天','week':'本周','nextweek':'下周','later':'更晚','overdue':'逾期','all':'全部'}[window._hmQuickFilter||'today']||'今天';
+  const qfLabel={'today':'今天','tomorrow':'明天','week':'本周','nextweek':'下周','later':'更晚','overdue':'逾期'}[qf]||qf;
   let html='<div class="todo-wrap">';
   if(!pending.length)html+='<div style="padding:14px 13px;font-size:12px;color:rgba(0,0,0,0.3)">'+qfLabel+'没有待办任务 🎉</div>';
   else html+=renderChainedTodos(pending);
@@ -1674,6 +1728,11 @@ function renderTodos(s){
     if(!_doneCollapsed)html+='<div class="todo-wrap">'+done.map(todoRowHTML).join('')+'</div>';
   }
   s.innerHTML=html;
+}
+function toggleGroup(key){
+  _groupCollapsed[key]=!_groupCollapsed[key];
+  const s=document.getElementById('stream');
+  if(s&&mode==='todos')renderTodos(s);
 }
 function toggleDoneCollapse(){
   _doneCollapsed=!_doneCollapsed;
@@ -1735,13 +1794,32 @@ let _todoEditId=null;
 function openTodoEditModal(id){
   const t=todos.find(x=>String(x.id)===String(id));if(!t||t.done||t.locked)return;
   _todoEditId=id;
-  document.getElementById('todo-edit-title').value=t.text||'';
+  const titleInp=document.getElementById('todo-edit-title');
+  if(titleInp)titleInp.value=t.text||'';
   const dateInp=document.getElementById('todo-edit-date');
   if(dateInp)dateInp.value=t.isoDate||'';
   const rem=document.getElementById('todo-edit-remark');
   if(rem)rem.innerHTML=t.remarkHtml||esc(t.remark||'');
   document.getElementById('modal-todo-edit').classList.add('open');
-  setTimeout(()=>document.getElementById('todo-edit-title').focus(),80);
+  setTimeout(()=>{
+    if(titleInp){
+      titleInp.focus();
+      titleInp.onkeydown=e=>{
+        if(e.key==='Enter'&&!e.isComposing){e.preventDefault();if(rem)rem.focus();}
+        if(e.key==='Escape'){closeTodoEditModal();}
+      };
+    }
+    if(rem){
+      rem.onkeydown=e=>{
+        if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){
+          /* only submit if caret is at end and no selection */
+          const sel=window.getSelection();
+          if(sel&&sel.isCollapsed){e.preventDefault();saveTodoEditModal();}
+        }
+        if(e.key==='Escape'){closeTodoEditModal();}
+      };
+    }
+  },80);
 }
 function closeTodoEditModal(){
   document.getElementById('modal-todo-edit').classList.remove('open');
@@ -2040,7 +2118,7 @@ function openNextStepModal(id){
   /* keyboard flow */
   if(titleInp){
     titleInp.onkeydown=e=>{
-      if(e.key==='Enter'&&!e.isComposing){e.preventDefault();if(remarkInp)remarkInp.focus();}
+      if(e.key==='Enter'&&!e.isComposing){e.preventDefault();if(remarkInp){remarkInp.focus();remarkInp.setSelectionRange(remarkInp.value.length,remarkInp.value.length);}}
       if(e.key==='Escape'){closeNextStepModal();}
     };
   }
@@ -2587,7 +2665,14 @@ function renderAtPicker(){
 
   const monthName=y+'年'+(m+1)+'月';
 
-  wrap.innerHTML=`<div class="at-popup" id="at-popup">
+  /* position fixed popup below input */
+  const inp=document.getElementById('cap-todo-inp');
+  let popStyle='';
+  if(inp){
+    const r=inp.getBoundingClientRect();
+    popStyle=`left:${r.left}px;top:${r.bottom+6}px;`;
+  }
+  wrap.innerHTML=`<div class="at-popup" id="at-popup" style="${popStyle}">
     <div class="at-quick">
       ${quicks.map(q=>`<button class="at-q${_atDate===q.iso?' at-sel':''}" onclick="selectAtDate('${q.iso}')">${q.label}</button>`).join('')}
     </div>
@@ -2831,7 +2916,7 @@ document.addEventListener('keydown',function(e){
 },true);
 
 /* ── INIT ── */
-window._hmQuickFilter='today';
+window._hmQuickFilter='all';
 loadLocal();
 if(ghConfigured()){setSyncStatus('ing','连接中…');ghPullAll().then(()=>renderAll());}
 else{
