@@ -628,20 +628,80 @@ body::before{
 .seg-btn-r.act{background:rgba(99,102,241,0.1);color:#4338ca;border-color:rgba(99,102,241,0.25);font-weight:500;}
 .day-r{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--color-border-tertiary);background:none;font-size:11px;color:var(--color-text-secondary);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;}
 .day-r.act{background:#6366f1;color:white;border-color:#6366f1;}
+/* ── EDIT MODAL SEGMENTED (status/priority) ── */
+.te-seg{display:flex;gap:4px;}
+.te-seg-btn{flex:1;padding:6px 0;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:none;font-size:11px;color:var(--color-text-secondary);cursor:pointer;font-family:inherit;transition:all .1s;white-space:nowrap;}
+.te-seg-btn:hover{background:rgba(0,0,0,0.03);}
+.te-seg-btn.act{background:rgba(99,102,241,0.1);color:#4338ca;border-color:rgba(99,102,241,0.3);font-weight:500;}
+/* status badges & priority dots on todo rows */
+.todo-status-badge{font-size:9px;padding:1px 6px;border-radius:6px;font-weight:500;white-space:nowrap;}
+.tsb-doing{background:rgba(99,102,241,0.12);color:#4338ca;}
+.tsb-cancel{background:rgba(245,158,11,0.14);color:#92400e;}
+.pri-dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-right:2px;vertical-align:middle;}
+.pri-urgent{background:#ef4444;}
+.pri-important{background:#f59e0b;}
+.pri-normal{background:transparent;}
+.todo-row.pri-urgent-row{border-left:2.5px solid #ef4444;}
+.todo-row.pri-important-row{border-left:2.5px solid #f59e0b;}
+.todo-row.status-cancel-row .todo-title{text-decoration:line-through;color:rgba(0,0,0,0.35);}
 /* ── INLINE EDIT ── */
 .todo-title-inp{border:none;outline:none;background:transparent;font-family:inherit;font-size:inherit;color:inherit;width:100%;padding:0;margin:0;}
 .todo-row .drag-handle{width:16px;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,0.18);cursor:grab;flex-shrink:0;font-size:13px;opacity:0;transition:opacity .1s;}
 .todo-row:hover .drag-handle{opacity:1;}
 .todo-row.dragging{opacity:0.4;background:rgba(99,102,241,0.08)!important;}
 .todo-row.drag-over{border-top:2px solid #6366f1;}
+.todo-row{user-select:none;}
+.todo-row .todo-title{cursor:default;}
+/* ── TASK TOOLBAR / VIEWS ── */
+.task-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 2px 10px;padding:0 2px;}
+.tv-group,.tf-group{display:flex;gap:3px;background:rgba(0,0,0,0.035);border-radius:9px;padding:3px;}
+.tf-group{margin-left:auto;}
+.tv-btn,.tf-btn{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:rgba(0,0,0,0.5);background:none;border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit;transition:all .12s;}
+.tv-btn:hover,.tf-btn:hover{color:#4338ca;}
+.tv-btn.act,.tf-btn.act{background:#fff;color:#4338ca;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.tv-btn i{font-size:13px;}
+/* kanban */
+.kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:stretch;min-height:calc(100vh - 230px);}
+.kb-col{background:rgba(0,0,0,0.025);border-radius:12px;padding:8px;display:flex;flex-direction:column;transition:background .12s;}
+.kb-col.drag-over{background:rgba(99,102,241,0.08);outline:1.5px dashed rgba(99,102,241,0.4);}
+.kb-col-head{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;color:rgba(0,0,0,0.55);padding:4px 6px 8px;flex-shrink:0;}
+.kb-col-count{font-size:10px;background:rgba(0,0,0,0.07);border-radius:6px;padding:1px 7px;color:rgba(0,0,0,0.45);}
+.kb-col-body{display:flex;flex-direction:column;gap:7px;flex:1;}
+.kb-card{background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:9px;padding:8px 10px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:all .12s;}
+.kb-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.09);transform:translateY(-1px);}
+.kb-card-title{font-size:12.5px;color:rgba(0,0,0,0.8);line-height:1.4;word-break:break-word;}
+.kb-card-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:5px;}
+.kb-date{font-size:9.5px;color:rgba(0,0,0,0.35);}
+.kb-empty{font-size:10.5px;color:rgba(0,0,0,0.25);text-align:center;padding:16px 0;flex:1;display:flex;align-items:center;justify-content:center;}
+/* matrix */
+.matrix-board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:stretch;min-height:calc(100vh - 230px);}
+.mx-quad{border-radius:12px;padding:9px;display:flex;flex-direction:column;}
+.mx-urgent{background:rgba(239,68,68,0.06);border:0.5px solid rgba(239,68,68,0.14);}
+.mx-important{background:rgba(245,158,11,0.06);border:0.5px solid rgba(245,158,11,0.14);}
+.mx-normal{background:rgba(0,0,0,0.025);border:0.5px solid rgba(0,0,0,0.06);}
+.mx-quad-head{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:rgba(0,0,0,0.6);padding:2px 4px 9px;flex-shrink:0;}
+.mx-count{font-size:10px;background:rgba(0,0,0,0.07);border-radius:6px;padding:1px 7px;color:rgba(0,0,0,0.45);}
+.mx-quad-body{display:flex;flex-direction:column;gap:7px;flex:1;}
+@media(max-width:760px){.kanban-board{grid-template-columns:repeat(2,1fr);}.matrix-board{grid-template-columns:1fr;}}
 .inline-date-btn{font-size:9.5px;color:rgba(0,0,0,0.3);cursor:pointer;padding:1px 4px;border-radius:5px;border:none;background:none;font-family:inherit;}
 .inline-date-btn:hover{background:rgba(99,102,241,0.08);color:#4338ca;}
 .inline-tag-pill{font-size:9px;padding:1px 6px;border-radius:8px;cursor:pointer;border:0.5px solid;transition:opacity .1s;}
 .inline-tag-pill:hover{opacity:.75;}
 /* chain modal */
-.chain-modal{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9990;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s;}
+.chain-modal{position:fixed;inset:0;background:rgba(0,0,0,0.28);z-index:9990;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s;}
 .chain-modal.open{opacity:1;pointer-events:auto;}
-.chain-box{background:var(--color-background-primary);border-radius:16px;padding:22px;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+.chain-box{background:#ffffff;border-radius:16px;padding:22px;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.28);border:0.5px solid rgba(0,0,0,0.06);}
+/* lightweight next-step toast */
+.nextstep-toast{position:fixed;right:22px;bottom:22px;z-index:9995;display:none;align-items:center;gap:11px;background:#ffffff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;padding:12px 14px;box-shadow:0 12px 36px rgba(0,0,0,0.18);max-width:330px;transform:translateY(16px);opacity:0;transition:transform .2s ease,opacity .2s ease;}
+.nextstep-toast.show{display:flex;transform:translateY(0);opacity:1;}
+.nst-icon{width:26px;height:26px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.nst-body{flex:1;min-width:0;}
+.nst-title{font-size:12.5px;font-weight:600;color:rgba(0,0,0,0.8);}
+.nst-sub{font-size:11px;color:rgba(0,0,0,0.45);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nst-action{flex-shrink:0;background:#6366f1;color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .12s;}
+.nst-action:hover{background:#4f46e5;}
+.nst-close{flex-shrink:0;background:none;border:none;color:rgba(0,0,0,0.3);font-size:16px;cursor:pointer;padding:0 2px;line-height:1;}
+.nst-close:hover{color:rgba(0,0,0,0.6);}
 .chain-from{font-size:11px;color:rgba(0,0,0,0.38);margin-bottom:14px;}
 .chain-title-inp{width:100%;border:none;border-bottom:1.5px solid #6366f1;outline:none;font-size:14px;font-weight:500;color:#1a1a2e;background:transparent;font-family:inherit;padding:3px 0 7px;margin-bottom:14px;}
 .chain-remark{width:100%;border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:9px 11px;font-size:13px;color:#1a1a2e;background:var(--color-background-secondary);font-family:inherit;resize:none;min-height:56px;line-height:1.65;outline:none;}
@@ -841,6 +901,25 @@ body::before{
       <input type="date" class="todo-date-inp" id="todo-edit-date" />
       <button onclick="document.getElementById('todo-edit-date').value=''" style="background:none;border:none;font-size:11px;color:rgba(0,0,0,0.3);cursor:pointer;padding:0 4px;">清除</button>
     </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin:4px 0 6px;">
+      <div style="flex:1;min-width:150px;">
+        <div style="margin-bottom:5px;font-size:11px;color:rgba(0,0,0,0.4);">状态</div>
+        <div class="te-seg" id="te-status-seg">
+          <button class="te-seg-btn" data-status="todo" onclick="setEditStatus('todo')">未开始</button>
+          <button class="te-seg-btn" data-status="doing" onclick="setEditStatus('doing')">进行中</button>
+          <button class="te-seg-btn" data-status="done" onclick="setEditStatus('done')">已完成</button>
+          <button class="te-seg-btn" data-status="cancel" onclick="setEditStatus('cancel')">已取消</button>
+        </div>
+      </div>
+      <div style="flex:1;min-width:150px;">
+        <div style="margin-bottom:5px;font-size:11px;color:rgba(0,0,0,0.4);">优先级</div>
+        <div class="te-seg" id="te-pri-seg">
+          <button class="te-seg-btn" data-pri="urgent" onclick="setEditPri('urgent')">🔴 紧急</button>
+          <button class="te-seg-btn" data-pri="important" onclick="setEditPri('important')">🟡 重要</button>
+          <button class="te-seg-btn" data-pri="normal" onclick="setEditPri('normal')">⚪ 普通</button>
+        </div>
+      </div>
+    </div>
     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;">
       <label style="font-size:12px;color:var(--color-text-secondary);">重复任务</label>
       <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:auto;">
@@ -1017,6 +1096,17 @@ body::before{
   </div>
 </div>
 
+<!-- NEXT-STEP TOAST (lightweight, auto-dismiss) -->
+<div class="nextstep-toast" id="nextstep-toast" onmouseenter="nsToastHold()" onmouseleave="nsToastResume()">
+  <div class="nst-icon">✓</div>
+  <div class="nst-body">
+    <div class="nst-title">已完成</div>
+    <div class="nst-sub" id="nst-sub">要接下一步吗？</div>
+  </div>
+  <button class="nst-action" id="nst-action">+ 接下一步</button>
+  <button class="nst-close" onclick="hideNextStepToast()" title="关闭">×</button>
+</div>
+
 <!-- NEXT STEP MODAL -->
 <div class="modal-overlay" id="modal-next-step" onclick="if(event.target===this)closeNextStepModal()">
   <div class="modal" style="width:min(520px,92vw);">
@@ -1158,19 +1248,21 @@ const GH_FILES={
   tags:'tags.json',
   projects:'projects.json',
   note_tags:'note_tags.json',
-  todo_tags:'todo_tags.json'
+  todo_tags:'todo_tags.json',
+  documents:'documents.json'
 };
 /* sha cache per file */
-let _sha={notes:null,todos:null,experiences:null,tags:null,projects:null,note_tags:null,todo_tags:null};
+let _sha={notes:null,todos:null,experiences:null,tags:null,projects:null,note_tags:null,todo_tags:null,documents:null};
 let _syncTimer=null;
 let _pulling=false;
 let _pushing=false;
 /* dirty flags — only push files that actually changed */
-let _dirty={notes:false,todos:false,experiences:false,tags:false,projects:false,note_tags:false,todo_tags:false};
+let _dirty={notes:false,todos:false,experiences:false,tags:false,projects:false,note_tags:false,todo_tags:false,documents:false};
 
 let notes=[];
 let todos=[];
 let experiences=[];
+let documents=[]; /* [{id,title,html,text,tags,isoDate,time,created,updated,fromNoteId}] */
 let projects=[]; /* [{id,name,color,logs:[{id,ver,tags,points,detail,isoDate,time}]}] */
 let inbox=[]; /* [{id,text,tags,time,images}] */
 let _activeProject=null; /* id of selected project */
@@ -1236,16 +1328,30 @@ function loadLocal(){
       if(d.note_tags)NOTE_TAGS=d.note_tags;
       if(d.todo_tags)TODO_TAGS=d.todo_tags;
       if(d.inbox)inbox=d.inbox;
+      if(d.documents)documents=d.documents;
     }
   }catch(e){}
   /* migrate legacy TAGS into NOTE_TAGS and TODO_TAGS if empty */
   if(!NOTE_TAGS.length&&!TODO_TAGS.length&&TAGS.length){
     migrateTagsToSplit();
   }
+  migrateTodos();
   if(projects.length&&!_activeProject)_activeProject=projects[0].id;
 }
+/* migrate todos to new schema: status(4-state) + priority. Keeps SS chain/repeat fields. */
+function migrateTodos(){
+  todos.forEach(t=>{
+    if(!t.status)t.status=t.done?'done':'todo';
+    if(!t.priority)t.priority='normal';
+    /* keep done flag in sync with status as source of truth for cancel/done */
+    if(t.status==='done')t.done=true;
+    if(t.status==='cancel')t.done=true; /* cancelled tasks treated as not-active */
+    if(t.status==='todo'||t.status==='doing')t.done=false;
+    if(!t.tags)t.tags=[];
+  });
+}
 function saveLocal(){
-  localStorage.setItem('wb_v22',JSON.stringify({notes,todos,experiences,tags:TAGS,projects,note_tags:NOTE_TAGS,todo_tags:TODO_TAGS,inbox}));
+  localStorage.setItem('wb_v22',JSON.stringify({notes,todos,experiences,tags:TAGS,projects,note_tags:NOTE_TAGS,todo_tags:TODO_TAGS,inbox,documents}));
 }
 /* granular save — mark only the changed dataset dirty */
 function saveNotes(){saveLocal();_dirty.notes=true;schedulePush();}
@@ -1255,6 +1361,7 @@ function saveExp(){saveLocal();_dirty.experiences=true;schedulePush();}
 function saveTags(){saveLocal();_dirty.tags=true;schedulePush();}
 function saveNoteTags(){saveLocal();_dirty.note_tags=true;schedulePush();}
 function saveTodoTags(){saveLocal();_dirty.todo_tags=true;schedulePush();}
+function saveDocs(){saveLocal();_dirty.documents=true;schedulePush();}
 /* save() marks everything dirty — used when multiple datasets change at once */
 function save(){saveLocal();_dirty.notes=true;_dirty.todos=true;_dirty.experiences=true;_dirty.tags=true;schedulePush();}
 /* migrate old unified TAGS into split note/todo tags */
@@ -1408,7 +1515,7 @@ async function ghPushAll(){
   _pushing=true;
   syncBarStart();
   setSyncStatus('ing','同步中…');
-  const dataMap={notes,todos,experiences,tags:TAGS,projects,note_tags:NOTE_TAGS,todo_tags:TODO_TAGS};
+  const dataMap={notes,todos,experiences,tags:TAGS,projects,note_tags:NOTE_TAGS,todo_tags:TODO_TAGS,documents};
   const total=toSync.length;
   let done=0;
   try{
@@ -1434,8 +1541,8 @@ async function ghPullAll(){
   _pulling=true;
   setSyncStatus('ing','加载中…');
   try{
-    const [rn,rt,re,rtags,rproj,rntags,rttags]=await Promise.all([
-      ghPullFile('notes'),ghPullFile('todos'),ghPullFile('experiences'),ghPullFile('tags'),ghPullFile('projects'),ghPullFile('note_tags'),ghPullFile('todo_tags')
+    const [rn,rt,re,rtags,rproj,rntags,rttags,rdocs]=await Promise.all([
+      ghPullFile('notes'),ghPullFile('todos'),ghPullFile('experiences'),ghPullFile('tags'),ghPullFile('projects'),ghPullFile('note_tags'),ghPullFile('todo_tags'),ghPullFile('documents')
     ]);
     if(rn)notes=rn;
     if(rt)todos=rt;
@@ -1443,9 +1550,11 @@ async function ghPullAll(){
     if(rntags)NOTE_TAGS=rntags;
     if(rttags)TODO_TAGS=rttags;
     if(re)experiences=re;
+    if(rdocs)documents=rdocs;
     if(rtags&&Array.isArray(rtags))TAGS=rtags;
     /* if any file missing, push it */
     if(!rn||!rt||!re||!rtags)await ghPushAll();
+    migrateTodos();
     saveLocal();renderAll();resolveAllImages();setSyncStatus('ok','已从云端加载');
   }catch(e){setSyncStatus('err','读取失败: '+e.message);}
   finally{
@@ -1781,7 +1890,7 @@ function renderCaptureTodo(cap){
       <span id="cap-tags-display" style="display:flex;gap:4px;flex-wrap:wrap"></span>
       <span class="cap-hint">回车发送</span>
       <button class="cap-submit" onclick="addTodo()">添加</button>
-    </div></div></div>`;
+    </div></div>${taskToolbarHTML()}</div>`;
   const inp=document.getElementById('cap-todo-inp');
   if(inp){
     inp.addEventListener('keydown',e=>{
@@ -1937,8 +2046,24 @@ function applyTodoDateFilter(list){
   if(qf==='overdue') return list.filter(t=>t.isoDate&&t.isoDate<tk&&!t.done);
   return list;
 }
+/* ── TASK VIEW STATE ── */
+let taskView='list'; /* 'list' | 'kanban' | 'matrix' */
+let todoFilter='all'; /* 'all' | 'todo' | 'done' */
+/* shared todo sort: pinned first, then priority (urgent>important>normal), keep insertion order otherwise */
+const PRI_RANK={urgent:0,important:1,normal:2};
+function todoSortCmp(a,b){
+  const pa=(a.pinned?0:1),pb=(b.pinned?0:1);
+  if(pa!==pb)return pa-pb;
+  const ra=PRI_RANK[a.priority||'normal'],rb=PRI_RANK[b.priority||'normal'];
+  if(ra!==rb)return ra-rb;
+  return 0;
+}
 function renderTodos(s){
   let base=todos.filter(t=>(!activeTag||t.tags.includes(activeTag))&&matchSearch(t.text,t.tags));
+  if(todoFilter==='todo')base=base.filter(t=>!t.done);
+  else if(todoFilter==='done')base=base.filter(t=>t.done);
+  if(taskView==='kanban'){renderKanban(s,base);return;}
+  if(taskView==='matrix'){renderMatrix(s,base);return;}
   const tk=todayKey();
   const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
   const[wMon,wSun]=weekBounds(0);const[nwMon,nwSun]=weekBounds(1);
@@ -1954,7 +2079,7 @@ function renderTodos(s){
   let html='';
   groups.forEach(g=>{
     if(!g.items.length)return;
-    g.items.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+    g.items.sort(todoSortCmp);
     const collapsed=_groupCollapsed[g.key];
     /* add overdue class to rows */
     const rowsHtml=g.key==='overdue'
@@ -1991,6 +2116,80 @@ function toggleDoneCollapse(){
   const s=document.getElementById('stream');
   if(s&&mode==='todos')renderTodos(s);
 }
+/* ── VIEW SWITCHER ── */
+function setTaskView(v){
+  taskView=v;
+  document.querySelectorAll('.tv-btn').forEach(b=>b.classList.toggle('act',b.dataset.view===v));
+  const s=document.getElementById('stream');if(s)renderTodos(s);
+}
+function setTodoFilter(f){
+  todoFilter=f;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.toggle('act',b.dataset.filter===f));
+  const s=document.getElementById('stream');if(s)renderTodos(s);
+}
+function taskToolbarHTML(){
+  return`<div class="task-toolbar">
+    <div class="tv-group">
+      <button class="tv-btn${taskView==='list'?' act':''}" data-view="list" onclick="setTaskView('list')" title="列表"><i class="ti ti-list" aria-hidden="true"></i> 列表</button>
+      <button class="tv-btn${taskView==='kanban'?' act':''}" data-view="kanban" onclick="setTaskView('kanban')" title="看板"><i class="ti ti-layout-kanban" aria-hidden="true"></i> 看板</button>
+      <button class="tv-btn${taskView==='matrix'?' act':''}" data-view="matrix" onclick="setTaskView('matrix')" title="四象限"><i class="ti ti-layout-grid" aria-hidden="true"></i> 四象限</button>
+    </div>
+    <div class="tf-group">
+      <button class="tf-btn${todoFilter==='all'?' act':''}" data-filter="all" onclick="setTodoFilter('all')">全部</button>
+      <button class="tf-btn${todoFilter==='todo'?' act':''}" data-filter="todo" onclick="setTodoFilter('todo')">未完成</button>
+      <button class="tf-btn${todoFilter==='done'?' act':''}" data-filter="done" onclick="setTodoFilter('done')">已完成</button>
+    </div>
+  </div>`;
+}
+/* ── KANBAN VIEW (by status) ── */
+const KANBAN_COLS=[
+  {status:'todo',label:'未开始'},
+  {status:'doing',label:'进行中'},
+  {status:'done',label:'已完成'},
+  {status:'cancel',label:'已取消'}
+];
+function kanbanCardHTML(t){
+  const pri=t.priority||'normal';
+  const priDot=pri!=='normal'?`<span class="pri-dot pri-${pri}"></span>`:'';
+  const tags=t.tags.map(tg=>`<span class="pill" style="color:${tagColor(tg)};font-size:9px;">${tagLabel(tg)}</span>`).join('');
+  return`<div class="kb-card" draggable="true" ondragstart="kbDragStart(event,'${t.id}')" onclick="openTodoEditModal('${t.id}')">
+    <div class="kb-card-title">${priDot}${renderRichText(t.text)}</div>
+    <div class="kb-card-meta">${t.date?`<span class="kb-date">${esc(t.date)}</span>`:''}${tags}</div>
+  </div>`;
+}
+function renderKanban(s,base){
+  s.innerHTML=`<div class="kanban-board" id="kanban-board">`+KANBAN_COLS.map(col=>{
+    const items=base.filter(t=>(t.status||(t.done?'done':'todo'))===col.status).sort(todoSortCmp);
+    return`<div class="kb-col" ondragover="event.preventDefault();this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="kbDrop(event,'${col.status}',this)">
+      <div class="kb-col-head"><span>${col.label}</span><span class="kb-col-count">${items.length}</span></div>
+      <div class="kb-col-body">${items.map(kanbanCardHTML).join('')||'<div class="kb-empty">拖动到此</div>'}</div>
+    </div>`;
+  }).join('')+`</div>`;
+}
+let _kbDragId=null;
+function kbDragStart(e,id){_kbDragId=id;e.dataTransfer.effectAllowed='move';}
+function kbDrop(e,status,el){
+  e.preventDefault();el.classList.remove('drag-over');
+  if(!_kbDragId)return;
+  const t=todos.find(x=>String(x.id)===String(_kbDragId));_kbDragId=null;
+  if(!t||(t.status||(t.done?'done':'todo'))===status)return;
+  applyTodoStatus(t,status);
+  saveTodos();render();renderHeatmap();
+}
+/* ── MATRIX VIEW (by priority) ── */
+function renderMatrix(s,base){
+  const active=base.filter(t=>!t.done);
+  const quads=[
+    {key:'urgent',label:'🔴 紧急',items:active.filter(t=>(t.priority||'normal')==='urgent')},
+    {key:'important',label:'🟡 重要',items:active.filter(t=>(t.priority||'normal')==='important')},
+    {key:'normal',label:'⚪ 普通',items:active.filter(t=>(t.priority||'normal')==='normal')}
+  ];
+  s.innerHTML=`<div class="matrix-board">`+quads.map(q=>
+    `<div class="mx-quad mx-${q.key}">
+      <div class="mx-quad-head">${q.label}<span class="mx-count">${q.items.length}</span></div>
+      <div class="mx-quad-body">${q.items.sort(todoSortCmp).map(t=>kanbanCardHTML(t)).join('')||'<div class="kb-empty">无</div>'}</div>
+    </div>`).join('')+`</div>`;
+}
 function renderChainedTodos(list){
   let html='';
   list.forEach(t=>{
@@ -2016,6 +2215,13 @@ function todoRowHTML(t){
   if(t.done&&t.nextId)badge='<span class="badge-chain">已触发</span>';
   else if(isNext)badge='<span class="badge-next">轮到你了</span>';
   else if(t.locked)badge='<span class="badge-lock">等待前置</span>';
+  /* status badge: only show doing / cancel inline (todo & done are implied by group/circle) */
+  let statusBadge='';
+  if(t.status==='doing')statusBadge='<span class="todo-status-badge tsb-doing">进行中</span>';
+  else if(t.status==='cancel')statusBadge='<span class="todo-status-badge tsb-cancel">已取消</span>';
+  /* priority dot (not for done) */
+  const pri=t.priority||'normal';
+  const priDot=(!t.done&&pri!=='normal')?`<span class="pri-dot pri-${pri}" title="${pri==='urgent'?'紧急':'重要'}"></span>`:'';
   const imgsHtml=(t.images&&t.images.length)?`<div class="todo-imgs">${t.images.map((img,i)=>`<div class="todo-img-wrap"><img src="${img}" class="todo-img" onclick="previewImg('${img}')" /><button class="todo-img-del" onclick="deleteTodoImg('${t.id}',${i})">×</button></div>`).join('')}</div>`:'';
   const remark=t.remark||'';
   const remarkHtml=remark?`<div class="todo-remark-preview has-remark" onclick="openTodoEditModal('${t.id}')">${esc(remark.split('\n')[0])}</div>`:'';
@@ -2026,21 +2232,24 @@ function todoRowHTML(t){
   const tagsPart=t.done?t.tags.map(tg=>`<span class="todo-tag-pill" style="color:${tagColor(tg)}">${tagLabel(tg)}</span>`).join('')
     :t.tags.map(tg=>`<span class="inline-tag-pill" style="color:${tagColor(tg)};background:${tagColor(tg)}18;border-color:${tagColor(tg)}44;" onclick="inlineEditTag('${t.id}',event)">${tagLabel(tg)}</span>`).join('')
     +(!t.done?`<button class="inline-date-btn" onclick="inlineEditTag('${t.id}',event)" style="font-size:9px;">+标签</button>`:'');
-  return`<div class="todo-row${t.pinned&&!t.done?' pinned':''}${isNext?' active-next':''}" id="tr-${t.id}"
+  const priRowCls=(!t.done&&pri==='urgent')?' pri-urgent-row':(!t.done&&pri==='important')?' pri-important-row':'';
+  const cancelRowCls=t.status==='cancel'?' status-cancel-row':'';
+  return`<div class="todo-row${t.pinned&&!t.done?' pinned':''}${isNext?' active-next':''}${priRowCls}${cancelRowCls}" id="tr-${t.id}"
     draggable="${!t.done}"
+    ondblclick="openTodoEditModal('${t.id}')"
     ondragstart="dragStart(event,'${t.id}')"
     ondragover="dragOver(event,'${t.id}')"
     ondragleave="dragLeave(event)"
     ondrop="dragDrop(event,'${t.id}')">
     <span class="drag-handle" title="拖拽排序">⠿</span>
-    <div class="todo-circle${t.done?' done':t.locked?' locked':''}" onclick="${t.locked?`toast('需先完成前置任务')`:`toggleTodo('${t.id}')`}"></div>
+    <div class="todo-circle${t.done?' done':t.locked?' locked':''}" onclick="event.stopPropagation();${t.locked?`toast('需先完成前置任务')`:`toggleTodo('${t.id}')`}"></div>
     <div class="todo-body">
-      <div class="todo-title${t.done?' done':t.locked?' locked-t':''}" id="tt-${t.id}"
-        ${!t.done&&!t.locked?`contenteditable="true" onblur="inlineSaveTitle('${t.id}',this)" onkeydown="inlineTitleKey(event,'${t.id}',this)"`:''}>
-        ${renderRichText(t.text)}${t.pinned&&!t.done?' <span style="font-size:10px;opacity:0.5">📌</span>':''}
+      <div class="todo-title${t.done?' done':t.locked?' locked-t':''}" id="tt-${t.id}">
+        ${priDot}${renderRichText(t.text)}${t.pinned&&!t.done?' <span style="font-size:10px;opacity:0.5">📌</span>':''}
       </div>
       <div class="todo-sub">
         ${datePart}
+        ${statusBadge}
         ${t.repeat?'<span class="repeat-badge">↻</span>':''}
         ${tagsPart}
         ${badge}
@@ -2049,24 +2258,31 @@ function todoRowHTML(t){
       ${remarkHtml}
     </div>
     <div class="todo-actions">
-      ${t.done?`<button class="next-step-btn" onclick="openChainModal('${t.id}')">+ 接下一步</button>`:''}
-      ${!t.done?`<button class="t-btn${t.pinned?' pin-active':''}" onclick="togglePin('${t.id}')">${t.pinned?'取消置顶':'📌 置顶'}</button>`:''}
-      <button class="t-btn" onclick="openTodoEditModal('${t.id}')">备注</button>
-      <button class="t-btn" onclick="deleteTodo('${t.id}')" style="color:#ef4444">删除</button>
+      ${t.done?`<button class="next-step-btn" onclick="event.stopPropagation();openChainModal('${t.id}')">+ 接下一步</button>`:''}
+      ${!t.done?`<button class="t-btn${t.pinned?' pin-active':''}" onclick="event.stopPropagation();togglePin('${t.id}')">${t.pinned?'取消置顶':'📌 置顶'}</button>`:''}
+      <button class="t-btn" onclick="event.stopPropagation();deleteTodo('${t.id}')" style="color:#ef4444">删除</button>
     </div>
   </div>`;
 }
 /* todo edit modal */
 let _todoEditId=null;
+let _editStatus='todo',_editPri='normal';
+function setEditStatus(s){_editStatus=s;document.querySelectorAll('#te-status-seg .te-seg-btn').forEach(b=>b.classList.toggle('act',b.dataset.status===s));}
+function setEditPri(p){_editPri=p;document.querySelectorAll('#te-pri-seg .te-seg-btn').forEach(b=>b.classList.toggle('act',b.dataset.pri===p));}
 function openTodoEditModal(id){
-  const t=todos.find(x=>String(x.id)===String(id));if(!t||t.done||t.locked)return;
+  const t=todos.find(x=>String(x.id)===String(id));if(!t)return;
   _todoEditId=id;
   const titleInp=document.getElementById('todo-edit-title');
   if(titleInp)titleInp.value=t.text||'';
   const dateInp=document.getElementById('todo-edit-date');
   if(dateInp)dateInp.value=t.isoDate||'';
+  setEditStatus(t.status||(t.done?'done':'todo'));
+  setEditPri(t.priority||'normal');
   const rem=document.getElementById('todo-edit-remark');
   if(rem)rem.innerHTML=t.remarkHtml||esc(t.remark||'');
+  /* sync repeat panel state */
+  const rOn=document.getElementById('te-repeat-on');
+  if(rOn){rOn.checked=!!t.repeat;toggleRepeatPanel();if(t.repeat&&t.repeat.cycle)setRepeatCycle(t.repeat.cycle);}
   document.getElementById('modal-todo-edit').classList.add('open');
   setTimeout(()=>{
     if(titleInp){
@@ -2113,8 +2329,32 @@ function saveTodoEditModal(){
   }
   if(remEl){t.remarkHtml=remEl.innerHTML;t.remark=remEl.textContent.trim();}
   t.repeat=getRepeatConfig();
+  t.priority=_editPri||'normal';
+  applyTodoStatus(t,_editStatus||'todo');
   closeTodoEditModal();saveTodos();render();renderHeatmap();toast('已保存');
-  closeTodoEditModal();saveTodos();render();renderHeatmap();toast('已保存');
+}
+/* apply a 4-state status to a todo, keeping done/doneAt/date/chain-lock consistent */
+function applyTodoStatus(t,newStatus){
+  const wasDone=t.done;
+  t.status=newStatus;
+  const isDoneLike=(newStatus==='done'||newStatus==='cancel');
+  t.done=isDoneLike;
+  if(isDoneLike){
+    if(!wasDone){
+      const now=new Date();
+      t.doneAt=(now.getMonth()+1)+'/'+(now.getDate())+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+    }
+    /* unlock chained next on completion (not on cancel) */
+    if(newStatus==='done'&&t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n)n.locked=false;}
+    if(newStatus==='done')maybeTriggerRepeat(t);
+  }else{
+    t.doneAt=null;
+    const isoD=t.isoDate;const tk=todayKey();
+    const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
+    t.date=!isoD?'待定':isoD===tk?'今天':isoD===tomK?'明天':((new Date(isoD+'T00:00:00').getMonth()+1)+'/'+(new Date(isoD+'T00:00:00').getDate()));
+    /* re-lock chained next when reopening */
+    if(t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n)n.locked=true;}
+  }
 }
 async function addTodo(){
   const inp=document.getElementById('cap-todo-inp');if(!inp)return;
@@ -2134,21 +2374,13 @@ async function addTodo(){
     }
   }
   const _autoTags=[...pendingSelTags];if(activeTag&&TODO_TAGS.find(t=>t.id===activeTag)&&!_autoTags.includes(activeTag))_autoTags.push(activeTag);
-  if(!_atDate){
-    /* no date → send to inbox */
-    inbox.unshift({id,text:text||'（图片）',tags:_autoTags,time:new Date().toLocaleTimeString('zh',{hour:'2-digit',minute:'2-digit'}),images:imgUrls});
-    inp.value='';todoPendingImgs=[];pendingSelTags=[];
-    renderImgsStrip('todo-imgs-strip',[],'todo');
-    const disp=document.getElementById('cap-tags-display');if(disp)disp.innerHTML='';
-    saveLocal();updateInboxFab();render();toast('已存入收集箱，点顶部排期');
-    return;
-  }
-  const useDate=_atDate;
+  /* no explicit date → default to today (never auto-route to notes/inbox) */
+  const useDate=_atDate||todayISO();
   const _today=new Date();const _tk=_today.toISOString().slice(0,10);
   const _tom=new Date(_today);_tom.setDate(_today.getDate()+1);const _tomK=_tom.toISOString().slice(0,10);
   const _dd=new Date(useDate+'T00:00:00');
   const dateLabel=useDate===_tk?'今天':useDate===_tomK?'明天':((_dd.getMonth()+1)+'/'+_dd.getDate());
-  todos.unshift({id,done:false,text:text||'（图片）',date:dateLabel,isoDate:useDate,tags:_autoTags,pinned:false,nextId:null,locked:false,images:imgUrls});
+  todos.unshift({id,done:false,status:'todo',priority:'normal',text:text||'（图片）',date:dateLabel,isoDate:useDate,tags:_autoTags,pinned:false,nextId:null,locked:false,images:imgUrls});
   inp.value='';todoPendingImgs=[];pendingSelTags=[];_atDate=null;
   const _badge=document.getElementById('cap-date-badge');if(_badge)_badge.style.display='none';
   renderImgsStrip('todo-imgs-strip',[],'todo');
@@ -2313,7 +2545,7 @@ function deleteNote(id){
 function noteToTodo(id){
   const n=notes.find(x=>String(x.id)===String(id));if(!n)return;
   const text=n.text.slice(0,30)+(n.text.length>30?'…':'');
-  todos.unshift({id:uid(),done:false,text,date:'今天',isoDate:todayISO(),tags:[...n.tags],pinned:false,nextId:null,locked:false,images:[]});
+  todos.unshift({id:uid(),done:false,status:'todo',priority:'normal',text,date:'今天',isoDate:todayISO(),tags:[...n.tags],pinned:false,nextId:null,locked:false,images:[]});
   save();render();toast('已转为待办');
 }
 function toggleExpMark(id){
@@ -2340,27 +2572,14 @@ function saveExpConclusion(){
   _expConclusionId=null;
   saveNotes();render();toast('结论已保存');
 }
-/* remark functions replaced by todo edit modal *//* remark functions replaced by todo edit modal */
+/* remark functions replaced by todo edit modal */
 function toggleTodo(id){
   const t=todos.find(x=>String(x.id)===String(id));if(!t||t.locked)return;
-  t.done=!t.done;
-  if(t.done){
-    const now=new Date();
-    t.doneAt=(now.getMonth()+1)+'/'+(now.getDate())+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
-    t.date='已完成';
-  }else{
-    t.doneAt=null;
-    const isoD=t.isoDate;
-    const tk=todayKey();
-    const tom=new Date();tom.setDate(tom.getDate()+1);const tomK=tom.toISOString().slice(0,10);
-    t.date=!isoD?'今天':isoD===tk?'今天':isoD===tomK?'明天':((new Date(isoD+'T00:00:00').getMonth()+1)+'/'+(new Date(isoD+'T00:00:00').getDate()));
-  }
-  if(t.done&&t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n)n.locked=false;}
-  else{if(!t.done&&t.nextId){const n=todos.find(x=>String(x.id)===String(t.nextId));if(n)n.locked=true;}}
-  if(t.done)maybeTriggerRepeat(t);
+  const goingDone=!t.done;
+  applyTodoStatus(t,goingDone?'done':'todo');
   saveTodos();render();
-  /* open chain modal after completing */
-  if(t.done)setTimeout(()=>openChainModal(t.id),200);
+  /* show lightweight next-step prompt after completing (only via circle click) */
+  if(t.done)setTimeout(()=>showNextStepToast(t.id),150);
 }
 function togglePin(id){const t=todos.find(x=>String(x.id)===String(id));if(!t)return;t.pinned=!t.pinned;saveTodos();render();toast(t.pinned?'已置顶 📌':'已取消置顶');}
 function deleteTodo(id){
@@ -2387,7 +2606,7 @@ function confirmChainAdd(id){
   const text=inp.value.trim();if(!text){toast('请输入任务内容');return;}
   const t=todos.find(x=>String(x.id)===String(id));if(!t)return;
   const nid=uid();
-  todos.splice(todos.findIndex(x=>String(x.id)===String(id))+1,0,{id:nid,done:false,text,date:'待定',isoDate:todayISO(),tags:[],pinned:false,nextId:t.nextId,locked:!t.done,images:[]});
+  todos.splice(todos.findIndex(x=>String(x.id)===String(id))+1,0,{id:nid,done:false,status:'todo',priority:'normal',text,date:'待定',isoDate:todayISO(),tags:[],pinned:false,nextId:t.nextId,locked:!t.done,images:[]});
   t.nextId=nid;addingChainFor=null;saveTodos();render();toast('已加入任务链');
 }
 /* next-step modal (for done tasks) */
@@ -2462,7 +2681,7 @@ async function confirmNextStep(){
   }else if(_nsImgs.length){imgUrls=[..._nsImgs];}
   const remark=(remarkInp&&remarkInp.value.trim())||'';
   todos.splice(todos.findIndex(x=>String(x.id)===String(_nextStepForId))+1,0,{
-    id:nid,done:false,text,date:'今天',isoDate:todayISO(),tags:[...t.tags],
+    id:nid,done:false,status:'todo',priority:'normal',text,date:'今天',isoDate:todayISO(),tags:[...t.tags],
     pinned:false,nextId:t.nextId,locked:false,remark,images:imgUrls
   });
   t.nextId=nid;
@@ -3247,7 +3466,7 @@ function confirmInboxSched(iso){
   const today=new Date();const tk=today.toISOString().slice(0,10);const tom=new Date(today);tom.setDate(today.getDate()+1);const tomK=tom.toISOString().slice(0,10);
   const dd=new Date(iso+'T00:00:00');
   const dateLabel=iso===tk?'今天':iso===tomK?'明天':((dd.getMonth()+1)+'/'+dd.getDate());
-  todos.unshift({id:item.id,done:false,text:item.text,date:dateLabel,isoDate:iso,tags:item.tags||[],pinned:false,nextId:null,locked:false,images:item.images||[]});
+  todos.unshift({id:item.id,done:false,status:'todo',priority:'normal',text:item.text,date:dateLabel,isoDate:iso,tags:item.tags||[],pinned:false,nextId:null,locked:false,images:item.images||[]});
   inbox=inbox.filter(x=>x.id!==_schedInboxId);_schedInboxId=null;
   const p=document.getElementById('at-popup-body');if(p)p.remove();
   saveTodos();saveLocal();updateInboxFab();renderInboxDrawer();render();toast('已排期移到待办');
@@ -3293,7 +3512,7 @@ function maybeTriggerRepeat(todo){
   const today=new Date();const tk=today.toISOString().slice(0,10);const tom=new Date(today);tom.setDate(today.getDate()+1);const tomK=tom.toISOString().slice(0,10);
   const dd=new Date(nextDate+'T00:00:00');
   const dateLabel=nextDate===tk?'今天':nextDate===tomK?'明天':((dd.getMonth()+1)+'/'+dd.getDate());
-  todos.unshift({id:uid(),done:false,text:todo.text,date:dateLabel,isoDate:nextDate,tags:[...todo.tags],pinned:false,nextId:null,locked:false,images:[],repeat:todo.repeat});
+  todos.unshift({id:uid(),done:false,status:'todo',priority:todo.priority||'normal',text:todo.text,date:dateLabel,isoDate:nextDate,tags:[...todo.tags],pinned:false,nextId:null,locked:false,images:[],repeat:todo.repeat});
   setTimeout(()=>{saveTodos();toast('已生成下次重复任务');},50);
 }
 /* ── INLINE EDIT ── */
@@ -3374,6 +3593,27 @@ function dragDrop(e,targetId){
 
 /* ── CHAIN MODAL ── */
 let _chainForId=null;
+/* lightweight next-step toast: shown on completion, auto-dismiss after 3s, click to open chain modal */
+let _nstTimer=null,_nstForId=null;
+function showNextStepToast(id){
+  const t=todos.find(x=>String(x.id)===String(id));if(!t||!t.done)return;
+  if(t.nextId)return; /* already has a next step */
+  _nstForId=id;
+  const el=document.getElementById('nextstep-toast');if(!el)return;
+  const sub=document.getElementById('nst-sub');
+  if(sub)sub.textContent='「'+(t.text.slice(0,16)+(t.text.length>16?'…':''))+'」要接下一步吗？';
+  const act=document.getElementById('nst-action');
+  if(act)act.onclick=()=>{const fid=_nstForId;hideNextStepToast();openChainModal(fid);};
+  el.classList.add('show');
+  nsToastResume();
+}
+function hideNextStepToast(){
+  const el=document.getElementById('nextstep-toast');if(el)el.classList.remove('show');
+  if(_nstTimer){clearTimeout(_nstTimer);_nstTimer=null;}
+  _nstForId=null;
+}
+function nsToastHold(){if(_nstTimer){clearTimeout(_nstTimer);_nstTimer=null;}}
+function nsToastResume(){if(_nstTimer)clearTimeout(_nstTimer);_nstTimer=setTimeout(hideNextStepToast,3000);}
 function openChainModal(id){
   const t=todos.find(x=>String(x.id)===String(id));if(!t||!t.done)return;
   _chainForId=id;
@@ -3410,7 +3650,7 @@ function confirmChainModal(){
   const t=todos.find(x=>String(x.id)===String(_chainForId));if(!t)return;
   const nid=uid();const remark=re&&re.value.trim()||'';
   todos.splice(todos.findIndex(x=>String(x.id)===String(_chainForId))+1,0,{
-    id:nid,done:false,text,date:'今天',isoDate:todayISO(),tags:[...t.tags],
+    id:nid,done:false,status:'todo',priority:'normal',text,date:'今天',isoDate:todayISO(),tags:[...t.tags],
     pinned:false,nextId:t.nextId,locked:false,remark,images:[]
   });
   t.nextId=nid;
