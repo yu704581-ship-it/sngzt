@@ -33,6 +33,11 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .nav-btn:hover{background:var(--bg3);color:var(--text2);}
 .nav-btn.active{background:var(--accent-s);color:var(--accent);}
 .nav-spacer{flex:1;}
+.nav-sync{width:38px;height:28px;display:flex;align-items:center;justify-content:center;cursor:default;margin-bottom:2px;}
+.nav-sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text4);transition:background 0.4s;}
+.nav-sync-dot.ok{background:var(--green);}
+.nav-sync-dot.err{background:var(--red);}
+.nav-sync-dot.syncing{background:var(--yellow);animation:blink 1s infinite;}
 
 .panel{width:256px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
 .panel-hd{padding:14px 14px 10px;flex-shrink:0;}
@@ -103,6 +108,10 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .inbox-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;min-width:18px;height:18px;border-radius:9px;padding:0 5px;display:flex;align-items:center;justify-content:center;font-weight:600;}
 
 .sec-hd{padding:6px 14px 3px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;justify-content:space-between;}
+.sec-hd-sel{cursor:pointer;border-radius:var(--rxs);margin:0 6px;padding:5px 8px 4px;transition:background 0.12s;}
+.sec-hd-sel:hover{background:var(--bg3);}
+.sec-hd-sel.selected{background:var(--accent-s);color:var(--accent);}
+.sec-hd-sel.selected .sec-count{color:var(--accent);}
 .sec-count{font-size:10px;color:var(--text4);}
 
 .ptask{display:flex;align-items:center;gap:8px;padding:6px 14px;cursor:pointer;transition:background 0.1s;user-select:none;}
@@ -263,10 +272,10 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    SYNC STRIP
 ══════════════════════════════════════════ */
-.sync-strip{position:fixed;top:0;left:0;right:0;height:2px;z-index:200;display:none;}
+.sync-strip{position:fixed;top:5px;left:0;right:0;height:2px;z-index:200;display:none;border-radius:1px;}
 .sync-strip.active{display:block;}
-.sync-strip-bar{height:100%;background:var(--accent);width:0;transition:width 1.2s ease;}
-.sync-strip-label{position:fixed;top:4px;right:10px;font-size:10px;color:var(--text3);z-index:201;pointer-events:none;opacity:0;transition:opacity 0.2s;}
+.sync-strip-bar{height:100%;background:var(--accent);width:0;transition:width 1.2s ease;border-radius:1px;}
+.sync-strip-label{position:fixed;top:10px;right:10px;font-size:10px;color:var(--text3);z-index:201;pointer-events:none;opacity:0;transition:opacity 0.2s;}
 .sync-strip.active .sync-strip-label{opacity:1;}
 .sync-strip.done .sync-strip-label{opacity:1;}
 .sync-strip.done.fade .sync-strip-label{opacity:0;}
@@ -370,6 +379,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
   <button class="nav-btn active" id="nav-home" onclick="navTo('home')" title="今日 / 沉淀">☀</button>
   <button class="nav-btn" id="nav-proj" onclick="navTo('proj')" title="项目日志">⊟</button>
   <div class="nav-spacer"></div>
+  <div class="nav-sync" id="nav-sync-wrap"><div class="nav-sync-dot" id="nav-sync-dot" title="未同步"></div></div>
   <button class="nav-btn" id="nav-settings" onclick="navTo('settings')" title="设置">⚙</button>
 </nav>
 
@@ -590,6 +600,11 @@ function syncBarDone(ok){
   var dot=eid('sync-dot'),st=eid('sync-st-text');
   if(dot)dot.className='sync-dot'+(ok?' ok':' err');
   if(st)st.textContent=ok?'已同步':'同步失败';
+  var navDot=eid('nav-sync-dot');
+  if(navDot){
+    navDot.className='nav-sync-dot'+(ok?' ok':' err');
+    var now=new Date();navDot.title=(ok?'已同步':'同步失败')+' '+pad(now.getHours())+':'+pad(now.getMinutes());
+  }
 }
 
 async function ghPull(){
@@ -717,9 +732,11 @@ function renderPanel(){
 ══════════════════════════════════════════ */
 function renderTodayPanel(el){
   var today=todayStr();
+  var tomorrow=tomorrowStr();
+  if(!S.selectedDate)S.selectedDate=today;
   var sections=[
     {key:today,label:'今天'},
-    {key:tomorrowStr(),label:'明天'},
+    {key:tomorrow,label:'明天'},
     {key:'later',label:'稍后'},
   ];
   var inboxCnt=S.inbox.length;
@@ -740,22 +757,16 @@ function renderTodayPanel(el){
   sections.forEach(function(sec){
     var items;
     if(sec.key==='later'){
-      items=S.tasks.filter(function(t){return !t.isTemplate&&t.date!==today&&t.date!==tomorrowStr()&&(!t.date||t.date>tomorrowStr());});
+      items=S.tasks.filter(function(t){return !t.isTemplate&&t.date!==today&&t.date!==tomorrow&&(!t.date||t.date>tomorrow);});
     } else {
       items=S.tasks.filter(function(t){return !t.isTemplate&&t.date===sec.key;});
     }
-    if(!items.length)return;
-    items=sortTasks(items);
     var undone=items.filter(function(t){return !t.done&&t.status!=='cancel';}).length;
-    html+='<div class="sec-hd">'+sec.label+'<span class="sec-count">'+undone+'/'+items.length+'</span></div>';
-    items.forEach(function(t){
-      var priClass=t.priority==='urgent'?'urgent':t.priority==='important'?'important':'';
-      html+='<div class="ptask'+(t.done?' is-done':'')+(S._editingTaskId===t.id?' active':'')+'" onclick="ptaskClick(\''+t.id+'\')">'+
-        '<div class="pchk'+(t.done?' done':'')+'" onclick="toggleTask(\''+t.id+'\',event)"></div>'+
-        '<div class="ptask-title'+(t.done?' done':'')+'">'+esc(t.title)+'</div>'+
-        (priClass?'<div class="ptask-pri '+priClass+'">'+(t.priority==='urgent'?'急':'重')+'</div>':'')+
-      '</div>';
-    });
+    var isSel=S.selectedDate===sec.key;
+    html+='<div class="sec-hd sec-hd-sel'+(isSel?' selected':'')+'" onclick="selectDate(\''+sec.key+'\')">'+
+      '<span>'+sec.label+'</span>'+
+      '<span class="sec-count">'+undone+'/'+items.length+'</span>'+
+    '</div>';
   });
   el.innerHTML=html;
   renderCaptureTags();
@@ -933,8 +944,26 @@ function setTaskView(type,btn){
   renderTaskMain();
 }
 
+function selectDate(key){
+  S.selectedDate=key;
+  renderPanel();
+  updateTopbarForDate(key);
+  renderListView();
+}
+
+function updateTopbarForDate(key){
+  var today=todayStr();
+  var tomorrow=tomorrowStr();
+  var label=key===today?'今天':key===tomorrow?'明天':'稍后';
+  var sub=key===today?today:key===tomorrow?tomorrow:'';
+  eid('tb-title').textContent=label+'的任务';
+  eid('tb-sub').textContent=sub;
+}
+
 function renderTaskMain(){
   if(S.navMode!=='home'||S.panelMode!=='today')return;
+  if(!S.selectedDate)S.selectedDate=todayStr();
+  updateTopbarForDate(S.selectedDate);
   if(S.taskView==='list')renderListView();
   else if(S.taskView==='kanban')renderKanbanView();
   else if(S.taskView==='matrix')renderMatrixView();
@@ -944,27 +973,28 @@ function renderListView(){
   showView('view-list');
   var el=eid('view-list');
   var today=todayStr();
-  var tasks=S.tasks.filter(function(t){return !t.isTemplate;});
-  if(!tasks.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">✨</div><div>暂无任务</div></div>';return;}
+  var tomorrow=tomorrowStr();
+  var selDate=S.selectedDate||today;
 
-  var groups={};
-  tasks.forEach(function(t){var d=t.date||'未分配';if(!groups[d])groups[d]=[];groups[d].push(t);});
-  var dates=Object.keys(groups).sort(function(a,b){
-    if(a==='未分配')return 1;if(b==='未分配')return -1;
-    return a.localeCompare(b);
-  });
+  var tasks;
+  if(selDate==='later'){
+    tasks=S.tasks.filter(function(t){return !t.isTemplate&&t.date!==today&&t.date!==tomorrow&&(!t.date||t.date>tomorrow);});
+  } else {
+    tasks=S.tasks.filter(function(t){return !t.isTemplate&&t.date===selDate;});
+  }
 
-  var html=dates.map(function(d){
-    var isToday=d===today;
-    var isPast=d!=='未分配'&&d<today;
-    var sorted=sortTasks(groups[d]);
-    var undone=groups[d].filter(function(t){return !t.done&&t.status!=='done'&&t.status!=='cancel';}).length;
-    var label=isToday?'今天 · '+d:(isPast?'⚠ '+d:d);
-    return'<div class="tasks-group">'+
-      '<div class="tg-hd">'+esc(label)+(isPast&&undone?'<span style="font-size:10px;color:var(--red);font-weight:normal;margin-left:4px">'+undone+' 未完成</span>':'')+'</div>'+
-      sorted.map(taskCardHtml).join('')+
-    '</div>';
-  }).join('');
+  if(!tasks.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">✨</div><div>暂无任务</div><div style="font-size:12px;color:var(--text3);margin-top:4px">点击右上角「+ 新任务」添加</div></div>';
+    return;
+  }
+
+  var sorted=sortTasks(tasks);
+  var undone=sorted.filter(function(t){return !t.done&&t.status!=='done'&&t.status!=='cancel';});
+  var done=sorted.filter(function(t){return t.done||t.status==='done'||t.status==='cancel';});
+
+  var html='';
+  if(undone.length){html+='<div class="tasks-group"><div class="tg-hd">待完成</div>'+undone.map(taskCardHtml).join('')+'</div>';}
+  if(done.length){html+='<div class="tasks-group"><div class="tg-hd">已完成</div>'+done.map(taskCardHtml).join('')+'</div>';}
   el.innerHTML=html;
 }
 
