@@ -3366,23 +3366,38 @@ function openKbEditModal(id){
   _kbNewMode='edit';_kbEditId=id;_showKbModal(k);
 }
 function _showKbModal(k){
-  _kbSelCat=k.cat||'ui';
+  _kbSelCat=k.cat||_kbSelCat||'ui';
   S._modalAction='kb';
+  var isNew=_kbNewMode==='new';
   var catBtns=KB_CATS.filter(function(c){return c.id!=='all';}).map(function(c){
     return'<button class="kb-cat-pick-btn'+(c.id===_kbSelCat?' active':'')+'" data-cat="'+c.id+'" onclick="kbSelectCat(this)">'+c.label+'</button>';
   }).join('');
-  eid('modal-title').textContent=_kbNewMode==='new'?'记录知识点':'编辑知识点';
-  eid('modal-body').innerHTML=
-    '<div class="modal-field"><label class="modal-label">分类</label><div class="kb-cat-picker" id="kb-cat-picker">'+catBtns+'</div></div>'+
-    '<div class="modal-field"><label class="modal-label">标题 *</label><input class="modal-input" id="kb-inp-title" placeholder="一句话命名这个模式" value="'+esc(k.title||'')+'" /></div>'+
-    '<div class="modal-field"><label class="modal-label">适用场景</label><textarea class="modal-input" id="kb-inp-scene" rows="3" placeholder="什么情况下用？解决了什么问题？" style="resize:none;line-height:1.65">'+esc(k.scene||'')+'</textarea></div>'+
-    '<div class="modal-field"><label class="modal-label">代码 / 示例</label><textarea class="modal-input" id="kb-inp-code" rows="4" placeholder="关键代码或具体示例（选填）" style="resize:none;font-family:monospace;font-size:12.5px;line-height:1.65">'+esc(k.code||'')+'</textarea></div>'+
-    '<div class="modal-field"><label class="modal-label">核心洞察</label><textarea class="modal-input" id="kb-inp-insight" rows="2" placeholder="为什么这样设计？有什么坑？（选填）" style="resize:none;line-height:1.65">'+esc(k.insight||'')+'</textarea></div>'+
-    '<div class="modal-field"><label class="modal-label">标签（逗号分隔）</label><input class="modal-input" id="kb-inp-tags" placeholder="如：UX, 同步, 编辑器" value="'+esc((k.tags||[]).join(', '))+'" /></div>'+
-    '<div class="modal-field"><label class="modal-label">来源</label><input class="modal-input" id="kb-inp-source" placeholder="项目名、文章、工具名…" value="'+esc(k.source||'')+'" /></div>';
-  eid('modal-ok').textContent=_kbNewMode==='new'?'保存到知识库':'保存修改';
-  eid('modal-overlay').style.display='flex';
-  setTimeout(function(){var el=eid('kb-inp-title');if(el)el.focus();},80);
+  eid('modal-title').textContent=isNew?'记录知识点':'编辑知识点';
+  if(isNew){
+    // 快速录入：分类 + 一个大文本框
+    eid('modal-body').innerHTML=
+      '<div class="modal-field" style="margin-bottom:10px"><div class="kb-cat-picker" id="kb-cat-picker">'+catBtns+'</div></div>'+
+      '<div class="modal-field">'+
+        '<textarea class="modal-input" id="kb-inp-quick" rows="6" placeholder="第一行写标题，回车后写内容&#10;&#10;例如：&#10;进度条同步反馈&#10;每次保存时顶部出现细进度条，给用户即时反馈…" style="resize:none;line-height:1.75;font-size:14px"></textarea>'+
+        '<div style="font-size:11px;color:var(--text4);margin-top:5px">第一行 = 标题，其余 = 内容。代码/洞察/标签在详情页补充。</div>'+
+      '</div>';
+    eid('modal-ok').textContent='保存到知识库';
+    eid('modal-overlay').style.display='flex';
+    setTimeout(function(){var el=eid('kb-inp-quick');if(el)el.focus();},80);
+  } else {
+    // 编辑时展示完整字段
+    eid('modal-body').innerHTML=
+      '<div class="modal-field"><div class="kb-cat-picker" id="kb-cat-picker">'+catBtns+'</div></div>'+
+      '<div class="modal-field"><label class="modal-label">标题 *</label><input class="modal-input" id="kb-inp-title" value="'+esc(k.title||'')+'" /></div>'+
+      '<div class="modal-field"><label class="modal-label">内容 / 场景</label><textarea class="modal-input" id="kb-inp-scene" rows="3" style="resize:none;line-height:1.65">'+esc(k.scene||'')+'</textarea></div>'+
+      '<div class="modal-field"><label class="modal-label">代码 / 示例</label><textarea class="modal-input" id="kb-inp-code" rows="4" style="resize:none;font-family:monospace;font-size:12.5px;line-height:1.65">'+esc(k.code||'')+'</textarea></div>'+
+      '<div class="modal-field"><label class="modal-label">核心洞察</label><textarea class="modal-input" id="kb-inp-insight" rows="2" style="resize:none;line-height:1.65">'+esc(k.insight||'')+'</textarea></div>'+
+      '<div class="modal-field"><label class="modal-label">标签（逗号分隔）</label><input class="modal-input" id="kb-inp-tags" value="'+esc((k.tags||[]).join(', '))+'" /></div>'+
+      '<div class="modal-field"><label class="modal-label">来源</label><input class="modal-input" id="kb-inp-source" value="'+esc(k.source||'')+'" /></div>';
+    eid('modal-ok').textContent='保存修改';
+    eid('modal-overlay').style.display='flex';
+    setTimeout(function(){var el=eid('kb-inp-title');if(el)el.focus();},80);
+  }
 }
 function kbSelectCat(btn){
   _kbSelCat=btn.dataset.cat;
@@ -3390,21 +3405,26 @@ function kbSelectCat(btn){
   btn.classList.add('active');
 }
 function saveKbEntry(){
-  var title=(eid('kb-inp-title')||{}).value||'';
-  title=title.trim();if(!title){eid('kb-inp-title').focus();return;}
-  var tags=((eid('kb-inp-tags')||{}).value||'').split(',').map(function(t){return t.trim();}).filter(Boolean);
   if(_kbNewMode==='new'){
-    S.knowledge.unshift({
-      id:uid(),cat:_kbSelCat,title:title,
-      scene:((eid('kb-inp-scene')||{}).value||'').trim(),
-      code:((eid('kb-inp-code')||{}).value||'').trim(),
-      insight:((eid('kb-inp-insight')||{}).value||'').trim(),
-      tags:tags,source:((eid('kb-inp-source')||{}).value||'').trim(),
-      created:Date.now()
-    });
+    // 快速录入：解析第一行为标题
+    var raw=((eid('kb-inp-quick')||{}).value||'').trim();
+    if(!raw){eid('kb-inp-quick').focus();return;}
+    var lines=raw.split('\n');
+    var title=lines[0].trim();
+    var scene=lines.slice(1).join('\n').trim();
+    S.knowledge.unshift({id:uid(),cat:_kbSelCat,title:title,scene:scene,code:'',insight:'',tags:[],source:'',created:Date.now()});
   } else {
+    var title=(eid('kb-inp-title')||{}).value||'';
+    title=title.trim();if(!title){eid('kb-inp-title').focus();return;}
+    var tags=((eid('kb-inp-tags')||{}).value||'').split(',').map(function(t){return t.trim();}).filter(Boolean);
     var k=S.knowledge.find(function(x){return x.id===_kbEditId;});
-    if(k){k.cat=_kbSelCat;k.title=title;k.scene=((eid('kb-inp-scene')||{}).value||'').trim();k.code=((eid('kb-inp-code')||{}).value||'').trim();k.insight=((eid('kb-inp-insight')||{}).value||'').trim();k.tags=tags;k.source=((eid('kb-inp-source')||{}).value||'').trim();}
+    if(k){
+      k.cat=_kbSelCat;k.title=title;
+      k.scene=((eid('kb-inp-scene')||{}).value||'').trim();
+      k.code=((eid('kb-inp-code')||{}).value||'').trim();
+      k.insight=((eid('kb-inp-insight')||{}).value||'').trim();
+      k.tags=tags;k.source=((eid('kb-inp-source')||{}).value||'').trim();
+    }
   }
   save();closeModal();renderKnowledge();
   if(_kbDetailId)openKbDetail(_kbDetailId);
