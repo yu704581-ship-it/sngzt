@@ -108,11 +108,22 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .inbox-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;min-width:18px;height:18px;border-radius:9px;padding:0 5px;display:flex;align-items:center;justify-content:center;font-weight:600;}
 
 .sec-hd{padding:6px 14px 3px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;justify-content:space-between;}
-.sec-hd-sel{cursor:pointer;border-radius:var(--rxs);margin:0 6px;padding:5px 8px 4px;transition:background 0.12s;}
-.sec-hd-sel:hover{background:var(--bg3);}
-.sec-hd-sel.selected{background:var(--accent-s);color:var(--accent);}
-.sec-hd-sel.selected .sec-count{color:var(--accent);}
 .sec-count{font-size:10px;color:var(--text4);}
+.date-nav-card{margin:3px 8px;padding:11px 12px;border-radius:var(--rx);cursor:pointer;display:flex;align-items:center;justify-content:space-between;border:1px solid transparent;transition:background 0.12s,border-color 0.12s;}
+.date-nav-card:hover{background:var(--bg3);}
+.date-nav-card.selected{background:var(--accent-s);border-color:var(--accent-b);}
+.date-nav-left{display:flex;flex-direction:column;gap:2px;}
+.date-nav-label{font-size:13px;font-weight:500;color:var(--text1);}
+.date-nav-sub{font-size:11px;color:var(--text3);}
+.date-nav-badge{font-size:11px;color:var(--text3);background:var(--bg);border:1px solid var(--border);padding:1px 8px;border-radius:10px;white-space:nowrap;}
+.date-nav-card.selected .date-nav-label{color:var(--accent);}
+.date-nav-card.selected .date-nav-sub{color:var(--accent);opacity:.7;}
+.date-nav-card.selected .date-nav-badge{background:var(--accent-s);border-color:var(--accent-b);color:var(--accent);}
+.date-stat{margin:10px 8px 0;padding:12px;background:var(--bg3);border-radius:var(--rx);}
+.date-stat-label{font-size:11px;color:var(--text3);margin-bottom:7px;}
+.date-stat-bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.date-stat-bar{height:100%;background:var(--green);border-radius:2px;transition:width 0.4s ease;}
+.date-stat-num{font-size:12px;color:var(--text2);}
 
 .ptask{display:flex;align-items:center;gap:8px;padding:6px 14px;cursor:pointer;transition:background 0.1s;user-select:none;}
 .ptask:hover{background:var(--bg3);}
@@ -178,7 +189,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .tc-links{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;}
 .tc-link{font-size:11px;color:var(--accent);text-decoration:none;background:var(--accent-s);border-radius:4px;padding:1px 6px;}
 .tc-link:hover{text-decoration:underline;}
-.tc-acts{display:flex;gap:2px;opacity:0;transition:opacity 0.15s;flex-shrink:0;align-items:flex-start;}
+.tc-acts{display:flex;gap:2px;opacity:0.25;transition:opacity 0.15s;flex-shrink:0;align-items:flex-start;}
 .task-card:hover .tc-acts{opacity:1;}
 .tc-act-btn{width:26px;height:26px;border-radius:var(--rxs);border:none;background:transparent;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.12s;}
 .tc-act-btn:hover{background:var(--bg3);color:var(--text1);}
@@ -425,7 +436,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 <div class="drawer-ov" id="drawer-ov" onclick="closeInbox()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-hd">
-    <div class="drawer-title">📥 收件箱</div>
+    <div class="drawer-title">📥 收集箱</div>
     <button class="drawer-close" onclick="closeInbox()">✕</button>
   </div>
   <div class="drawer-body" id="drawer-body"></div>
@@ -442,7 +453,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
       <button class="modal-close" onclick="closeTaskModal()">✕</button>
     </div>
     <div class="modal-body" id="task-modal-body"></div>
-    <div class="modal-footer">
+    <div class="modal-footer" id="task-modal-footer">
       <button class="modal-btn" onclick="closeTaskModal()">取消</button>
       <button class="modal-btn primary" onclick="confirmTaskModal()">保存</button>
     </div>
@@ -750,10 +761,11 @@ function renderTodayPanel(el){
     '</div>'+
   '</div>'+
   '<div class="inbox-btn" onclick="openInbox()">'+
-    '📥 收件箱'+
+    '📥 收集箱'+
     (inboxCnt?'<div class="inbox-badge">'+inboxCnt+'</div>':'')+
   '</div>';
 
+  var selItems;
   sections.forEach(function(sec){
     var items;
     if(sec.key==='later'){
@@ -761,13 +773,29 @@ function renderTodayPanel(el){
     } else {
       items=S.tasks.filter(function(t){return !t.isTemplate&&t.date===sec.key;});
     }
+    if(sec.key===S.selectedDate)selItems=items;
     var undone=items.filter(function(t){return !t.done&&t.status!=='cancel';}).length;
     var isSel=S.selectedDate===sec.key;
-    html+='<div class="sec-hd sec-hd-sel'+(isSel?' selected':'')+'" onclick="selectDate(\''+sec.key+'\')">'+
-      '<span>'+sec.label+'</span>'+
-      '<span class="sec-count">'+undone+'/'+items.length+'</span>'+
+    var sub=sec.key==='later'?'稍后日期':sec.key;
+    html+='<div class="date-nav-card'+(isSel?' selected':'')+'" onclick="selectDate(\''+sec.key+'\')">'+
+      '<div class="date-nav-left">'+
+        '<div class="date-nav-label">'+sec.label+'</div>'+
+        '<div class="date-nav-sub">'+sub+'</div>'+
+      '</div>'+
+      '<div class="date-nav-badge">'+undone+' / '+items.length+'</div>'+
     '</div>';
   });
+  if(selItems){
+    var total=selItems.length;
+    var done=selItems.filter(function(t){return t.done||t.status==='done';}).length;
+    var pct=total?Math.round(done/total*100):0;
+    var selLabel=S.selectedDate===today?'今天':S.selectedDate===tomorrow?'明天':'稍后';
+    html+='<div class="date-stat">'+
+      '<div class="date-stat-label">'+selLabel+'完成进度</div>'+
+      '<div class="date-stat-bar-wrap"><div class="date-stat-bar" style="width:'+pct+'%"></div></div>'+
+      '<div class="date-stat-num">完成 '+done+' / '+total+' 个任务'+(!total?' — 还没有任务':pct===100?' 🎉 全部完成':'')+'</div>'+
+    '</div>';
+  }
   el.innerHTML=html;
   renderCaptureTags();
 }
@@ -1107,7 +1135,18 @@ function openEditTaskModal(id){
   S._editTaskTag=t.tag||null;S._editTaskStatus=t.status||'todo';S._editTaskPri=t.priority||'normal';
   eid('task-modal-title').textContent='编辑任务';
   eid('task-modal-body').innerHTML=buildTaskModalHtml(t,t.date);
+  eid('task-modal-footer').innerHTML=
+    '<div class="mgr-footer-left"><button class="modal-btn danger" onclick="deleteTaskFromModal()">删除任务</button></div>'+
+    '<button class="modal-btn" onclick="closeTaskModal()">取消</button>'+
+    '<button class="modal-btn primary" onclick="confirmTaskModal()">保存</button>';
   eid('task-modal-ov').classList.add('on');
+}
+
+function deleteTaskFromModal(){
+  if(!confirm('删除这个任务？'))return;
+  S.tasks=S.tasks.filter(function(x){return x.id!==S._editingTaskId;});
+  S.deletedIds.push(S._editingTaskId);
+  save();closeTaskModal();renderPanel();renderTaskMain();toast('已删除');
 }
 
 function buildTaskModalHtml(t,date){
@@ -1217,6 +1256,9 @@ function closeTaskModal(e){
   if(e&&e.target!==eid('task-modal-ov'))return;
   closeTpill();eid('task-modal-ov').classList.remove('on');
   S._modalAction=null;S._editingTaskId=null;
+  eid('task-modal-footer').innerHTML=
+    '<button class="modal-btn" onclick="closeTaskModal()">取消</button>'+
+    '<button class="modal-btn primary" onclick="confirmTaskModal()">保存</button>';
 }
 
 /* ══════════════════════════════════════════
@@ -1233,11 +1275,11 @@ function inboxKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitI
 function submitInbox(){
   var inp=eid('inbox-inp');var raw=inp.value.trim();if(!raw)return;
   S.inbox.unshift({id:uid(),title:raw,created:Date.now()});
-  save();inp.value='';renderInboxDrawer();renderPanel();toast('已存入收件箱 ✓');
+  save();inp.value='';renderInboxDrawer();renderPanel();toast('已存入收集箱 ✓');
 }
 function renderInboxDrawer(){
   var el=eid('drawer-body');if(!el)return;
-  if(!S.inbox.length){el.innerHTML='<div class="empty-state" style="min-height:150px">收件箱为空</div>';return;}
+  if(!S.inbox.length){el.innerHTML='<div class="empty-state" style="min-height:150px">收集箱为空</div>';return;}
   el.innerHTML=S.inbox.map(function(item){
     var d=new Date(item.created);
     var ds=pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
@@ -1546,7 +1588,7 @@ function renderSettings(){
         '<button class="tb-btn" onclick="importDataPrompt()">导入 JSON</button>'+
       '</div>'+
       '<div style="font-size:11px;color:var(--text3);margin-top:8px">'+
-        '任务 '+S.tasks.length+' · 笔记 '+S.notes.length+' · 收件箱 '+S.inbox.length+' · 项目 '+S.projects.length+
+        '任务 '+S.tasks.length+' · 笔记 '+S.notes.length+' · 收集箱 '+S.inbox.length+' · 项目 '+S.projects.length+
       '</div>'+
     '</div>'+
   '</div>';
