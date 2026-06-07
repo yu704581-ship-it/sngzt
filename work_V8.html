@@ -568,7 +568,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
     <div class="view" id="view-kanban"></div>
     <div class="view" id="view-matrix" style="height:calc(100vh - 90px);"></div>
     <div class="view" id="view-note" style="height:calc(100vh - 90px);padding:0;"></div>
-    <div class="view" id="view-proj-main" style="height:calc(100vh - 90px);padding:0;"></div>
+    <div class="view" id="view-proj-main" style="height:calc(100vh - 90px);padding:0;margin:-20px;width:calc(100% + 40px);"></div>
     <div class="view" id="view-settings"></div>
     <div class="view on" id="view-empty"><div class="empty-state"><div class="empty-icon">←</div><div>从左侧选择内容</div></div></div>
     <div class="view" id="view-review"></div>
@@ -626,7 +626,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════ */
-var VERSION='v3.3';
+var VERSION='v3.3A';
 var STATUS_LABELS={todo:'未开始',doing:'进行中',done:'已完成',cancel:'已取消'};
 var PRI_LABELS={normal:'⚪ 普通',important:'🟡 重要',urgent:'🔴 紧急'};
 var PROJ_COLORS=['#4f8ef7','#34c97a','#f5a623','#f25c5c','#af52de','#5856d6','#00c7be','#ff6b6b'];
@@ -1569,10 +1569,12 @@ function filterSettle(query){
 
 function toggleCat(hd){
   var arrow=hd.querySelector('.cat-arrow');
-  var items=hd.nextElementSibling;
+  var group=hd.parentElement;
+  var items=group?group.querySelector('.cat-items'):null;
+  if(!arrow||!items)return;
   var open=arrow.classList.contains('open');
   arrow.classList.toggle('open',!open);
-  if(items)items.style.display=open?'none':'';
+  items.style.display=open?'none':'';
   var catId=hd.getAttribute('data-cat');
   if(catId)_settleOpenCats[catId]=!open;
 }
