@@ -242,6 +242,11 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .ne-title-chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,126,244,0.06);}
 .lightbox-ov{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;}
 .lightbox-ov img{max-width:92vw;max-height:92vh;border-radius:8px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+.ne-img-strip{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0 4px;}
+.ne-img-thumb{position:relative;display:inline-block;}
+.ne-img-thumb img{width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:zoom-in;display:block;}
+.thumb-del{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#e05353;color:#fff;font-size:12px;line-height:18px;text-align:center;cursor:pointer;display:none;user-select:none;}
+.ne-img-thumb:hover .thumb-del{display:block;}
 
 /* ══════════════════════════════════════════
    PROJECT LOG VIEW
@@ -774,7 +779,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════ */
-var VERSION='v3.6';
+var VERSION='v3.7';
 var STATUS_LABELS={todo:'未开始',doing:'进行中',done:'已完成',cancel:'已取消'};
 var PRI_LABELS={normal:'⚪ 普通',important:'🟡 重要',urgent:'🔴 紧急'};
 var PROJ_COLORS=['#4f8ef7','#34c97a','#f5a623','#f25c5c','#af52de','#5856d6','#00c7be','#ff6b6b'];
@@ -992,12 +997,26 @@ function mergeRemote(remote){
   S.tasks=merge(S.tasks,remote.tasks);
   S.notes=merge(S.notes,remote.notes);
   S.inbox=merge(S.inbox,remote.inbox);
-  if(remote.projects&&remote.projects.length)S.projects=remote.projects;
-  if(remote.books&&remote.books.length)S.books=remote.books;
-  if(remote.knowledge&&remote.knowledge.length)S.knowledge=remote.knowledge;
+  var projMap={};
+  (S.projects||[]).forEach(function(p){projMap[p.id]=Object.assign({},p,{logs:(p.logs||[]).slice()});});
+  (remote.projects||[]).forEach(function(rp){
+    if(!projMap[rp.id]){projMap[rp.id]=rp;}
+    else{
+      var logMap={};
+      (projMap[rp.id].logs||[]).forEach(function(l){logMap[l.id]=l;});
+      (rp.logs||[]).forEach(function(rl){if(!logMap[rl.id]||(rl.created||0)>(logMap[rl.id].created||0))logMap[rl.id]=rl;});
+      projMap[rp.id].logs=Object.values(logMap).sort(function(a,b){return(b.created||0)-(a.created||0);});
+    }
+  });
+  S.projects=Object.values(projMap);
+  if(remote.books)S.books=merge(S.books,remote.books);
+  if(remote.knowledge)S.knowledge=merge(S.knowledge,remote.knowledge);
   if(remote.reviews&&remote.reviews.length)S.reviews=merge(S.reviews,remote.reviews);
   if(remote.kcards)S.kcards=merge(S.kcards,remote.kcards||[]);
-  if(remote.weeklyLetters&&remote.weeklyLetters.length)S.weeklyLetters=remote.weeklyLetters;
+  var wlMap={};
+  (S.weeklyLetters||[]).forEach(function(l){wlMap[l.id]=l;});
+  (remote.weeklyLetters||[]).forEach(function(rl){if(!wlMap[rl.id])wlMap[rl.id]=rl;});
+  S.weeklyLetters=Object.values(wlMap).sort(function(a,b){return(b.generated||0)-(a.generated||0);});
   saveLocal();
 }
 
@@ -1785,22 +1804,15 @@ function openNote(id){
       '<button onclick="document.execCommand(\'insertUnorderedList\')" title="无序列表">•</button>'+
     '</div>'+
     '<div class="ne-body" id="ne-body-'+id+'" contenteditable="true" onpaste="handleNotePaste(event,\''+id+'\')" oninput="updateNoteBodyEl(\''+id+'\')">'+_noteBodyHtml(n.body)+'</div>'+
+    '<div class="ne-img-strip" id="ne-img-strip-'+id+'"></div>'+
   '</div>';
   showView('view-note');
 
-  // 灯箱：点击图片放大
+  _extractNoteImages(id);
   var neBody=eid('ne-body-'+id);
   if(neBody){
     neBody.addEventListener('click',function(e){
-      if(e.target.tagName==='IMG'&&!e.target.closest('[contenteditable]~*')){
-        var ov=document.createElement('div');
-        ov.className='lightbox-ov';
-        var img=document.createElement('img');
-        img.src=e.target.src;
-        ov.appendChild(img);
-        ov.onclick=function(){document.body.removeChild(ov);};
-        document.body.appendChild(ov);
-      }
+      if(e.target.tagName==='IMG'){openLightbox(e.target.src);}
     });
   }
 
@@ -1829,7 +1841,10 @@ function _noteBodyHtml(body){
 function updateNoteBodyEl(id){
   var el=eid('ne-body-'+id);if(!el)return;
   var n=S.notes.find(function(x){return x.id===id;});if(!n)return;
-  n.body=el.innerHTML;n.updated=Date.now();
+  var bodyHtml=el.innerHTML;
+  var strip=eid('ne-img-strip-'+id);
+  if(strip){strip.querySelectorAll('.ne-img-thumb img').forEach(function(img){bodyHtml+='<img src="'+img.src+'">';});}
+  n.body=bodyHtml;n.updated=Date.now();
   clearTimeout(n._saveTimer2);n._saveTimer2=setTimeout(function(){save();},800);
   var cat=NOTE_CATS.find(function(c){return c.id===n.cat;})||{icon:'📝',label:'笔记'};
   eid('tb-sub').textContent=cat.icon+' '+cat.label+' · '+(fmtDate(n.updated)||'');
@@ -1844,12 +1859,46 @@ function handleNotePaste(e,id){
     }
   }
 }
+function openLightbox(src){
+  var ov=document.createElement('div');
+  ov.className='lightbox-ov';
+  var img=document.createElement('img');
+  img.src=src;
+  ov.appendChild(img);
+  ov.onclick=function(){document.body.removeChild(ov);};
+  document.body.appendChild(ov);
+}
+function _addThumbToStrip(strip,src,id){
+  var wrap=document.createElement('div');
+  wrap.className='ne-img-thumb';
+  var i=document.createElement('img');
+  i.src=src;
+  i.onclick=function(){openLightbox(src);};
+  var del=document.createElement('span');
+  del.className='thumb-del';
+  del.textContent='×';
+  del.onclick=function(e){e.stopPropagation();wrap.remove();updateNoteBodyEl(id);};
+  wrap.appendChild(i);wrap.appendChild(del);
+  strip.appendChild(wrap);
+}
+function removeNoteImg(btn,id){btn.parentNode.remove();updateNoteBodyEl(id);}
+function _extractNoteImages(id){
+  var body=eid('ne-body-'+id);
+  var strip=eid('ne-img-strip-'+id);
+  if(!body||!strip)return;
+  body.querySelectorAll('img').forEach(function(img){
+    var src=img.src;
+    img.remove();
+    _addThumbToStrip(strip,src,id);
+  });
+}
 function _compressAndInsertImage(file,id){
   var MAX=1024*1024;
   var reader=new FileReader();
   reader.onload=function(ev){
+    var strip=eid('ne-img-strip-'+id);
     if(file.size<=MAX){
-      document.execCommand('insertImage',false,ev.target.result);
+      if(strip)_addThumbToStrip(strip,ev.target.result,id);
       updateNoteBodyEl(id);
       return;
     }
@@ -1865,7 +1914,7 @@ function _compressAndInsertImage(file,id){
       function compress(){
         var data=canvas.toDataURL('image/jpeg',q);
         if((data.length*0.75)>MAX&&q>0.3){q=Math.max(q-0.15,0.3);compress();}
-        else{document.execCommand('insertImage',false,data);updateNoteBodyEl(id);}
+        else{var s=eid('ne-img-strip-'+id);if(s)_addThumbToStrip(s,data,id);updateNoteBodyEl(id);}
       }
       compress();
     };
