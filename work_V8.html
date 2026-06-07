@@ -264,7 +264,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
    PROJECT LOG — TIMELINE
 ══════════════════════════════════════════ */
 .proj-main-btns{display:flex;gap:6px;}
-.tl-wrap{display:flex;flex-direction:column;gap:0;}
+.tl-wrap{display:flex;flex-direction:column;gap:0;width:100%;}
 .tl-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;}
 .tl-spine{display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0;padding-top:2px;}
 .tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
@@ -568,6 +568,10 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 
 /* ══ KCARD MODAL TAG PICKER ══ */
 .kcard-tag-picker{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.kc-editor:empty:before{content:attr(placeholder);color:var(--text3);pointer-events:none;}
+.kc-editor img{max-width:100%;height:auto;border-radius:6px;margin:4px 0;display:block;}
+.kc-editor:empty:before{content:attr(placeholder);color:var(--text3);pointer-events:none;}
+.kc-editor img{max-width:100%;height:auto;border-radius:6px;margin:4px 0;display:block;}
 .kcard-tag-opt{padding:3px 10px;border-radius:10px;font-size:11px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.12s;font-family:inherit;}
 .kcard-tag-opt.sel{border-color:var(--accent-b);background:var(--accent-s);color:var(--accent);}
 </style>
@@ -764,7 +768,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════ */
-var VERSION='v3.4';
+var VERSION='v3.4A';
 var STATUS_LABELS={todo:'未开始',doing:'进行中',done:'已完成',cancel:'已取消'};
 var PRI_LABELS={normal:'⚪ 普通',important:'🟡 重要',urgent:'🔴 紧急'};
 var PROJ_COLORS=['#4f8ef7','#34c97a','#f5a623','#f25c5c','#af52de','#5856d6','#00c7be','#ff6b6b'];
@@ -1663,7 +1667,7 @@ function renderSettlePanel(el){
     var isOpen=_settleOpenCats[cat.id]!==undefined?_settleOpenCats[cat.id]:hasActive;
     html+='<div class="cat-group">'+
       '<div class="cat-hd" data-cat="'+cat.id+'" onclick="toggleCat(this)">'+
-        '<span class="cat-arrow'+(isOpen?' open':'')+'>▶</span>'+
+        '<span class="cat-arrow'+(isOpen?' open':'')+'">▶</span>'+
         '<span class="cat-name">'+cat.icon+' '+esc(cat.label)+'</span>'+
         '<span class="cat-count-badge">'+items.length+'</span>'+
       '</div>'+
@@ -1869,8 +1873,10 @@ function renderProjMain(){
 }
 
 function _oc(fn,args){
-  // build onclick string safely using JSON for args
-  var parts=args.map(function(a){return JSON.stringify(a);}).join(',');
+  var parts=args.map(function(a){
+    if(typeof a==='string')return"'"+a+"'";
+    return String(a);
+  }).join(',');
   return 'onclick="'+fn+'('+parts+')"';
 }
 function tlItemHtml(projId,l){
@@ -2513,19 +2519,43 @@ function _openKCardModal(c){
   _kcardSelTags=(c&&c.tags)?c.tags.slice():[];
   eid('modal-title').textContent=c?'编辑知识卡':'新建知识卡';
   eid('modal-body').innerHTML=
-    '<div class="m-field"><div class="m-label">内容</div>'+
-    '<textarea class="m-ta" id="kc-inp-content" rows="5" placeholder="记录你的洞察、方法、灵感…">'+esc(c?c.content||'':'')+'</textarea></div>'+
+    '<div class="m-field"><div class="m-label">内容（支持粘贴图片）</div>'+
+    '<div class="m-ta kc-editor" id="kc-inp-content" contenteditable="true" '+
+    'style="min-height:200px;max-height:420px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;cursor:text;" '+
+    'onpaste="kcHandlePaste(event)" placeholder="记录你的洞察、方法、灵感…"></div></div>'+
     '<div class="m-field"><div class="m-label">标签（可多选）</div>'+
     '<div class="kcard-tag-picker" id="kc-tag-picker">'+
       KCARD_PRESET_TAGS.map(function(t){
         var sel=_kcardSelTags.indexOf(t)!==-1;
-        return'<button class="kcard-tag-opt'+(sel?' sel':'')+'" onclick="toggleKCardTag(\''+esc(t)+'\',this)">'+esc(t)+'</button>';
+        return'<button class="kcard-tag-opt'+(sel?' sel':'')+'" data-tag="'+esc(t)+'" onclick="toggleKCardTag(this.dataset.tag,this)">'+esc(t)+'</button>';
       }).join('')+
     '</div></div>';
+  setTimeout(function(){
+    var el=eid('kc-inp-content');
+    if(el){
+      if(c&&c.content){if(c.content.indexOf('<img')!==-1||c.content.indexOf('<br')!==-1)el.innerHTML=c.content;else el.textContent=c.content;}
+      el.focus();
+    }
+  },30);
+  var fid=c?c.id:null;
   eid('modal-footer').innerHTML=
     '<button class="modal-btn" onclick="closeModal()">取消</button>'+
-    '<button class="modal-btn primary" onclick="saveKCard('+(c?'\''+c.id+'\'':'null')+')">保存</button>';
+    '<button class="modal-btn primary" onclick="saveKCard('+(fid?"'"+fid+"'":'null')+')">保存</button>';
   eid('modal-ov').classList.add('on');
+}
+function kcHandlePaste(e){
+  var items=(e.clipboardData||window.clipboardData||{}).items||[];
+  for(var i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==-1){
+      e.preventDefault();
+      var file=items[i].getAsFile();
+      if(file.size>2*1024*1024){toast('图片20 2MB，请压缩后重试');return;}
+      var reader=new FileReader();
+      reader.onload=function(ev){document.execCommand('insertImage',false,ev.target.result);};
+      reader.readAsDataURL(file);
+      return;
+    }
+  }
 }
 function toggleKCardTag(t,el){
   var idx=_kcardSelTags.indexOf(t);
@@ -2533,7 +2563,7 @@ function toggleKCardTag(t,el){
   else{_kcardSelTags.push(t);el.classList.add('sel');}
 }
 function saveKCard(existingId){
-  var content=(eid('kc-inp-content').value||'').trim();
+  var el=eid('kc-inp-content');var content=el?(el.tagName==='TEXTAREA'?el.value:el.innerHTML)||'':'';content=content.trim();
   if(!content){toast('请填写内容');return;}
   if(existingId){
     var c=S.kcards.find(function(x){return x.id===existingId;});
