@@ -1059,10 +1059,11 @@ function openCatManager(){
 
 function _catRow(label,icon,id){
   var opts=CAT_ICONS.map(function(ic){return'<option value="'+ic+'"'+(ic===icon?' selected':'')+'>'+ic+'</option>';}).join('');
+  var delBtn=id==='notes'?'<span style="width:24px;flex-shrink:0"></span>':'<button class="mgr-del" onclick="this.closest(\'.mgr-row\').remove()" title="删除">✕</button>';
   return '<div class="mgr-row" data-id="'+esc(id||'')+'">'+
-    '<select class="mgr-icon">'+opts+'</select>'+
-    '<input type="text" class="mgr-name" value="'+esc(label)+'" placeholder="类型名" maxlength="12">'+
-    '<button class="mgr-del" onclick="this.closest(\'.mgr-row\').remove()" title="删除">✕</button>'+
+    '<select class="mgr-icon"'+(id==='notes'?' disabled':'')+'>'+opts+'</select>'+
+    '<input type="text" class="mgr-name" value="'+esc(label)+'" placeholder="类型名" maxlength="12"'+(id==='notes'?' readonly':'')+'>'+
+    delBtn+
   '</div>';
 }
 
@@ -1086,6 +1087,7 @@ function saveCatManager(){
       newCats.push({id:id,label:label,icon:icon});
     }
   });
+  if(!newCats.find(function(c){return c.id==='notes';}))newCats.push({id:'notes',label:'笔记',icon:'📝'});
   if(!newCats.length){toast('至少保留一个类型');return;}
   var validIds=newCats.map(function(c){return c.id;});
   var fallback=newCats[0].id;
@@ -2472,6 +2474,7 @@ function init(){
   try{var t=JSON.parse(localStorage.getItem('ws_tags'));if(t&&t.length)TAGS=t;}catch(e){}
   // load note cats from old v4 if available
   try{var nc=JSON.parse(localStorage.getItem('ws_note_cats_v2'));if(nc&&nc.length)NOTE_CATS=nc;}catch(e){}
+  if(!NOTE_CATS.find(function(c){return c.id==='notes';}))NOTE_CATS.push({id:'notes',label:'笔记',icon:'📝'});
 
   // 版本号显示
   document.title='工作台 '+VERSION;
