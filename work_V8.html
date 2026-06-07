@@ -231,7 +231,17 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .ne-title-inp{flex:1;font-size:22px;font-weight:700;background:transparent;border:none;outline:none;color:var(--text1);}
 .ne-meta{font-size:11px;color:var(--text3);display:flex;gap:12px;margin-bottom:14px;flex-shrink:0;}
 .ne-body{flex:1;background:transparent;border:none;outline:none;color:var(--text2);font-size:14px;line-height:1.85;min-height:400px;word-break:break-word;overflow-y:auto;}
-.ne-body img{max-width:100%;height:auto;border-radius:6px;margin:6px 0;display:block;}
+.ne-body img{max-width:100%;max-height:300px;height:auto;border-radius:6px;margin:6px 0;display:block;cursor:zoom-in;}
+.ne-toolbar{display:flex;gap:2px;padding:5px 0;margin-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.ne-toolbar button{padding:3px 9px;border:none;background:transparent;border-radius:var(--rxs);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:background 0.12s;}
+.ne-toolbar button:hover{background:var(--bg4);color:var(--text1);}
+.ne-ai-title-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:2px 5px;line-height:1;opacity:0.55;transition:opacity 0.15s;}
+.ne-ai-title-btn:hover{opacity:1;}
+.ne-title-chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 4px;flex-shrink:0;}
+.ne-title-chip{padding:4px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;color:var(--text2);transition:all 0.12s;}
+.ne-title-chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,126,244,0.06);}
+.lightbox-ov{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;}
+.lightbox-ov img{max-width:92vw;max-height:92vh;border-radius:8px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
 
 /* ══════════════════════════════════════════
    PROJECT LOG VIEW
@@ -764,7 +774,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════ */
-var VERSION='v3.5';
+var VERSION='v3.6';
 var STATUS_LABELS={todo:'未开始',doing:'进行中',done:'已完成',cancel:'已取消'};
 var PRI_LABELS={normal:'⚪ 普通',important:'🟡 重要',urgent:'🔴 紧急'};
 var PROJ_COLORS=['#4f8ef7','#34c97a','#f5a623','#f25c5c','#af52de','#5856d6','#00c7be','#ff6b6b'];
@@ -953,7 +963,14 @@ async function ghPush(){
     var body={message:'sync '+new Date().toISOString(),content:content};
     if(_ghSha)body.sha=_ghSha;
     var r=await fetch(ghUrl(),{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
-    if(!r.ok){var err=await r.json();throw new Error(err.message||'HTTP '+r.status);}
+    if(!r.ok){
+      if(r.status===409){
+        var meta=await(await fetch(ghUrl(),{headers:ghHeaders()})).json();
+        _ghSha=meta.sha;body.sha=_ghSha;
+        r=await fetch(ghUrl(),{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+        if(!r.ok){var e2=await r.json();throw new Error(e2.message||'HTTP '+r.status);}
+      }else{var err=await r.json();throw new Error(err.message||'HTTP '+r.status);}
+    }
     var json=await r.json();_ghSha=json.content.sha;
     syncBarDone(true);
   }catch(e){syncBarDone(false);}
@@ -1680,7 +1697,7 @@ function renderSettlePanel(el){
       '</div>'+
       '<div class="cat-items" style="'+(isOpen?'':'display:none')+'">'+
       items.map(function(n){
-        return'<div class="note-row'+(S.activeNoteId===n.id?' active':'')+'" data-id="'+n.id+'" data-body="'+esc((n.body||'').replace(/<[^>]+>/g,'').slice(0,300))+'" onclick="openNote(\''+n.id+'\')">'+
+        return'<div class="note-row'+(S.activeNoteId===n.id?' active':'')+'" data-id="'+n.id+'" data-body="'+esc((n.body||'').replace(/<[^>]+>/g,'').slice(0,300)).replace(/"/g,'&quot;')+'" onclick="openNote(\''+n.id+'\')">'+
           '<div class="note-dot"></div>'+
           '<div class="note-row-title">'+esc(n.title||'无标题')+'</div>'+
           '<div class="note-row-date">'+fmtDate(n.updated||n.created)+'</div>'+
@@ -1717,13 +1734,15 @@ function filterSettle(query){
 }
 
 function toggleCat(hd){
+  while(hd&&!hd.classList.contains('cat-hd'))hd=hd.parentElement;
+  if(!hd)return;
   var arrow=hd.querySelector('.cat-arrow');
   var group=hd.parentElement;
   var items=group?group.querySelector('.cat-items'):null;
   if(!arrow||!items)return;
   var open=arrow.classList.contains('open');
   arrow.classList.toggle('open',!open);
-  items.style.display=open?'none':'';
+  items.style.display=open?'none':'block';
   var catId=hd.getAttribute('data-cat');
   if(catId)_settleOpenCats[catId]=!open;
 }
@@ -1748,20 +1767,46 @@ function openNote(id){
   var ev=eid('view-note');
   ev.innerHTML='<div class="note-editor-wrap" style="padding:0 0 20px;">'+
     '<div class="ne-titlebar">'+
-      '<input class="ne-title-inp" value="'+esc(n.title)+'" placeholder="标题..." oninput="updateNoteTitle(\''+id+'\',this.value)">'+
+      '<input class="ne-title-inp" id="ne-title-inp-'+id+'" value="'+esc(n.title)+'" placeholder="标题..." oninput="updateNoteTitle(\''+id+'\',this.value)">'+
+      '<button class="ne-ai-title-btn" id="ne-ai-title-btn-'+id+'" onclick="suggestTitles(\''+id+'\')" title="AI 标题建议">✨</button>'+
       '<select style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rxs);padding:4px 8px;font-size:12px;color:var(--text2);outline:none;cursor:pointer;" onchange="updateNoteCat(\''+id+'\',this.value)">'+
         NOTE_CATS.map(function(c){return'<option value="'+c.id+'"'+(c.id===n.cat?' selected':'')+'>'+c.icon+' '+c.label+'</option>';}).join('')+
       '</select>'+
       '<button class="tc-act-btn del" onclick="deleteNote(\''+id+'\')" title="删除笔记" style="margin-left:4px">✕</button>'+
     '</div>'+
+    '<div class="ne-title-chips" id="ne-title-chips-'+id+'"></div>'+
     '<div class="ne-meta">'+cat.icon+' '+cat.label+' · '+(n.updated?fmtDate(n.updated):'今天')+'</div>'+
+    '<div class="ne-toolbar">'+
+      '<button onclick="document.execCommand(\'formatBlock\',false,\'h1\')" title="H1">H1</button>'+
+      '<button onclick="document.execCommand(\'formatBlock\',false,\'h2\')" title="H2">H2</button>'+
+      '<button onclick="document.execCommand(\'bold\')" title="加粗"><b>B</b></button>'+
+      '<button onclick="_highlightSel()" title="高亮">高亮</button>'+
+      '<button onclick="document.execCommand(\'insertOrderedList\')" title="有序列表">1.</button>'+
+      '<button onclick="document.execCommand(\'insertUnorderedList\')" title="无序列表">•</button>'+
+    '</div>'+
     '<div class="ne-body" id="ne-body-'+id+'" contenteditable="true" onpaste="handleNotePaste(event,\''+id+'\')" oninput="updateNoteBodyEl(\''+id+'\')">'+_noteBodyHtml(n.body)+'</div>'+
   '</div>';
   showView('view-note');
 
+  // 灯箱：点击图片放大
+  var neBody=eid('ne-body-'+id);
+  if(neBody){
+    neBody.addEventListener('click',function(e){
+      if(e.target.tagName==='IMG'&&!e.target.closest('[contenteditable]~*')){
+        var ov=document.createElement('div');
+        ov.className='lightbox-ov';
+        var img=document.createElement('img');
+        img.src=e.target.src;
+        ov.appendChild(img);
+        ov.onclick=function(){document.body.removeChild(ov);};
+        document.body.appendChild(ov);
+      }
+    });
+  }
+
   // update sidebar highlight
   document.querySelectorAll('.note-row').forEach(function(r){r.classList.remove('active');});
-  var activeRow=document.querySelector('.note-row[onclick*="\''+id+'\'"]');
+  var activeRow=document.querySelector('.note-row[onclick*="\'"+id+"\'"]');
   if(activeRow)activeRow.classList.add('active');
 }
 
@@ -1794,19 +1839,94 @@ function handleNotePaste(e,id){
   for(var i=0;i<items.length;i++){
     if(items[i].type.indexOf('image')!==-1){
       e.preventDefault();
-      var file=items[i].getAsFile();
-      if(file.size>1024*1024){toast('图片超过 1MB，请压缩后重试 ✕');return;}
-      var reader=new FileReader();
-      (function(r,fid){
-        r.onload=function(ev){
-          document.execCommand('insertImage',false,ev.target.result);
-          updateNoteBodyEl(fid);
-        };
-        r.readAsDataURL(file);
-      })(reader,id);
+      _compressAndInsertImage(items[i].getAsFile(),id);
       return;
     }
   }
+}
+function _compressAndInsertImage(file,id){
+  var MAX=1024*1024;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    if(file.size<=MAX){
+      document.execCommand('insertImage',false,ev.target.result);
+      updateNoteBodyEl(id);
+      return;
+    }
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,h=img.height;
+      if(w>2000){h=Math.round(h*2000/w);w=2000;}
+      var canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      var ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      var q=0.85;
+      function compress(){
+        var data=canvas.toDataURL('image/jpeg',q);
+        if((data.length*0.75)>MAX&&q>0.3){q=Math.max(q-0.15,0.3);compress();}
+        else{document.execCommand('insertImage',false,data);updateNoteBodyEl(id);}
+      }
+      compress();
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function _highlightSel(){
+  document.execCommand('hiliteColor',false,'#FFE566');
+}
+async function suggestTitles(id){
+  var n=S.notes.find(function(x){return x.id===id;});if(!n)return;
+  var body=(n.body||'').replace(/<[^>]+>/g,'').slice(0,400);
+  if(!body.trim()){toast('请先写一些正文内容');return;}
+  var cfg=getCfg();if(!cfg.dsKey){toast('请先在设置中填写 AI Key');return;}
+  var btn=eid('ne-ai-title-btn-'+id);
+  var chips=eid('ne-title-chips-'+id);
+  if(btn){btn.style.opacity='0.3';btn.disabled=true;}
+  if(chips)chips.innerHTML='<span style="font-size:12px;color:var(--text3);padding:4px 0;">生成中...</span>';
+  var result=await askAI('根据以下笔记正文给出4~6个简洁标题建议，每行一个，不要编号不要符号：\n\n'+body,'你是标题助手，只输出候选标题，每行一个，不超过25字。','deepseek-chat');
+  if(btn){btn.style.opacity='0.55';btn.disabled=false;}
+  if(!chips)return;
+  var titles=(result||'').split('\n').map(function(t){return t.trim().replace(/^[-*•·\d.)\s]+/,'');}).filter(function(t){return t.length>1&&t.length<=30;});
+  if(!titles.length){chips.innerHTML='<span style="font-size:12px;color:var(--text3);">生成失败，请重试</span>';return;}
+  chips.innerHTML=titles.map(function(t){
+    return'<span class="ne-title-chip" onclick="applyNoteTitle(\''+id+'\','+JSON.stringify(t)+')">'+esc(t)+'</span>';
+  }).join('')+'<span class="ne-title-chip" style="opacity:0.5;" onclick="suggestTitles(\''+id+'\')">↺ 换一批</span>';
+}
+function applyNoteTitle(id,title){
+  var inp=eid('ne-title-inp-'+id);
+  if(inp){inp.value=title;updateNoteTitle(id,title);}
+  var chips=eid('ne-title-chips-'+id);
+  if(chips)chips.innerHTML='';
+}
+async function fetchMemory(){
+  if(!_serverOk)return '';
+  try{
+    var year=new Date().getFullYear();
+    var r=await fetch('http://localhost:8899/api/memory?year='+year);
+    if(!r.ok)return '';
+    var d=await r.json();
+    var entries=d.entries;
+    if(!entries||!entries.length)return '';
+    var lines=entries.slice(-8).map(function(e){return '['+e.date+'] 用户: '+e.user+'\nAI: '+e.ai;});
+    return '【长期记忆 - 近期对话摘要】\n'+lines.join('\n---\n')+'\n\n';
+  }catch(e){return '';}
+}
+async function saveMemory(userMsg,aiResp){
+  if(!_serverOk)return;
+  try{
+    var year=new Date().getFullYear();
+    var r=await fetch('http://localhost:8899/api/memory?year='+year);
+    var d=r.ok?await r.json():{};
+    var entries=d.entries||[];
+    entries.push({date:todayStr(),user:userMsg.slice(0,200),ai:aiResp.slice(0,300)});
+    if(entries.length>20)entries=entries.slice(-20);
+    await fetch('http://localhost:8899/api/memory?year='+year,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({entries:entries,lastUpdated:todayStr()})
+    });
+  }catch(e){}
 }
 function updateNoteCat(id,cat){
   var n=S.notes.find(function(x){return x.id===id;});
@@ -2620,13 +2740,14 @@ function buildAIPrefsContext(){
     return out;
   }catch(e){return'';}
 }
-function buildAISystemPrompt(){
+function buildAISystemPrompt(memory){
   var today=todayStr();
   var recentTasks=S.tasks.filter(function(t){return !t.isTemplate;}).slice(0,30);
   var recentReviews=S.reviews.slice(-14);
   var kcards=S.kcards.slice(0,20);
   var prefs=buildAIPrefsContext();
   var ctx='你是用户的私人AI助手，你了解他/她的工作台数据。\n\n';
+  if(memory)ctx=memory+ctx;
   if(recentTasks.length)ctx+='近期任务（'+recentTasks.length+'条）：\n'+recentTasks.map(function(t){return'- ['+(t.done?'完成':'未完')+'] '+t.title+(t.date?' ('+t.date+')':'');}).join('\n')+'\n\n';
   if(recentReviews.length)ctx+='近期复盘（'+recentReviews.length+'条）：\n'+recentReviews.map(function(r){return r.date+': Q1='+r.q1+' Q2='+r.q2+' Q3='+r.q3+' 状态='+r.mood;}).join('\n')+'\n\n';
   if(kcards.length)ctx+='知识卡（'+kcards.length+'张）：\n'+kcards.map(function(c){return'- '+c.content.slice(0,60);}).join('\n')+'\n\n';
@@ -2832,7 +2953,8 @@ async function sendChatMsg(){
   _aiChatMsgs.push({role:'assistant',content:'…'});
   renderChatMsgs();
 
-  var sys=buildAISystemPrompt();
+  var memory=await fetchMemory();
+  var sys=buildAISystemPrompt(memory);
   // 构建多轮 messages（最近10轮）
   var histMsgs=_aiChatMsgs.slice(0,-1).slice(-20).map(function(m){return{role:m.role,content:m.content};});
 
@@ -2841,6 +2963,8 @@ async function sendChatMsg(){
   _aiChatMsgs[_aiChatMsgs.length-1]={role:'assistant',content:result||'请求失败，请检查 API Key 或网络'};
   if(btn)btn.disabled=false;
   renderChatMsgs();
+  // 自动存入记忆
+  if(result)saveMemory(text,result);
 }
 function initChatDrag(){
   var btn=eid('ai-float-btn');if(!btn)return;
