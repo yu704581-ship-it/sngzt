@@ -376,6 +376,14 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .file-warn.on{display:flex;}
 .file-warn-close{margin-left:auto;background:transparent;border:none;color:#fff;cursor:pointer;font-size:18px;line-height:1;padding:0 4px;}
 
+/* ══ SERVER WARNING ══ */
+.server-warn{display:none;position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--red);color:#fff;font-size:12px;padding:10px 16px;align-items:center;gap:8px;line-height:1.8;flex-wrap:wrap;}
+.server-warn.on{display:flex;}
+.server-warn code{background:rgba(0,0,0,0.25);padding:1px 7px;border-radius:3px;font-size:11px;user-select:all;cursor:text;}
+.server-warn-dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:0.9;flex-shrink:0;animation:blink 1s infinite;}
+.server-warn-ok{display:none;position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--green);color:#fff;font-size:12px;padding:6px 16px;align-items:center;gap:8px;}
+.server-warn-ok.on{display:flex;}
+
 /* ══ INBOX PANEL ══ */
 .inbox-panel-hd{display:flex;align-items:center;gap:8px;padding:8px 10px 6px;border-bottom:1px solid var(--border);margin-bottom:4px;}
 .inbox-back-btn{background:transparent;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:0;font-family:inherit;}
@@ -496,6 +504,15 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 <div class="file-warn" id="file-warn">
   ⚠️ AI 功能不可用：请用书签地址打开工作台（<code style="background:rgba(0,0,0,0.2);padding:1px 5px;border-radius:3px;">http://localhost:8899/工作台_v3.html</code>），而不是直接双击文件
   <button class="file-warn-close" onclick="eid('file-warn').classList.remove('on')">✕</button>
+</div>
+<div class="server-warn" id="server-warn">
+  <span class="server-warn-dot"></span>
+  本地服务器未启动，AI 和记忆功能不可用。请在终端运行：
+  <code>python3 "/Users/linran888/Downloads/AG/workO G_副本/server.py"</code>
+  启动后此提示自动消失。
+</div>
+<div class="server-warn-ok" id="server-warn-ok">
+  ✅ 服务器已连接，正在隐藏提示…
 </div>
 
 <!-- SYNC STRIP -->
@@ -2451,6 +2468,11 @@ function init(){
   // file:// 检测
   if(location.protocol==='file:'){eid('file-warn').classList.add('on');}
 
+  // 服务器检测（仅 localhost 下运行）
+  if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){
+    checkServer();
+  }
+
   // render initial state
   navTo('home');
   initChatDrag();
@@ -2463,6 +2485,31 @@ function init(){
       else if(r==='notfound')ghPush();
     });
   }
+}
+
+var _serverOk=false;
+function checkServer(){
+  fetch('/ping',{cache:'no-cache'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.ok){
+        if(!_serverOk){
+          _serverOk=true;
+          eid('server-warn').classList.remove('on');
+          var ok=eid('server-warn-ok');
+          ok.classList.add('on');
+          setTimeout(function(){ok.classList.remove('on');},2000);
+        }
+        setTimeout(checkServer,15000);
+      } else { _serverFail(); }
+    })
+    .catch(function(){_serverFail();});
+}
+function _serverFail(){
+  _serverOk=false;
+  eid('server-warn').classList.add('on');
+  eid('server-warn-ok').classList.remove('on');
+  setTimeout(checkServer,3000);
 }
 
 init();
