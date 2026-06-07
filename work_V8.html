@@ -2492,8 +2492,9 @@ function init(){
 }
 
 var _serverOk=false;
+var _serverBase='http://localhost:8899';
 function checkServer(){
-  fetch('/ping',{cache:'no-cache'})
+  fetch(_serverBase+'/ping',{cache:'no-cache'})
     .then(function(r){return r.json();})
     .then(function(d){
       if(d&&d.ok){
