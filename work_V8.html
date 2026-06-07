@@ -1898,13 +1898,18 @@ function promoteInboxToNote(id){
   var n={id:uid(),cat:'notes',title:item.title,body:'',created:Date.now(),updated:Date.now()};
   S.notes.unshift(n);
   S.inbox=S.inbox.filter(function(x){return x.id!==id;});
-  S.deletedIds.push(id);save();renderPanel();toast('已转为笔记 ✓');
+  S.deletedIds.push(id);save();
+  switchPanel('settle');
+  setTimeout(function(){openNote(n.id);},80);
+  toast('已转为笔记，已跳转 ✓');
 }
 function promoteInboxToKCard(id){
   var item=S.inbox.find(function(x){return x.id===id;});if(!item)return;
   S.kcards.unshift({id:uid(),content:item.title,tags:[],created:Date.now(),updated:Date.now()});
   S.inbox=S.inbox.filter(function(x){return x.id!==id;});
-  S.deletedIds.push(id);save();renderPanel();toast('已转为知识卡 ✓');
+  S.deletedIds.push(id);save();
+  openKCardsView();
+  toast('已转为知识卡，已跳转 ✓');
 }
 
 /* ══════════════════════════════════════════
