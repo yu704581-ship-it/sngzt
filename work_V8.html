@@ -1753,9 +1753,9 @@ function renderSettings(){
       '<div style="font-size:11px;color:var(--text3);margin-top:10px">Token 需要 repo 权限，数据存储在 workspace-data-v3.json</div>'+
     '</div>'+
     '<div class="settings-section">'+
-      '<div class="settings-section-title">AI 助手 (DeepSeek)</div>'+
-      '<div class="setting-row"><span class="setting-label">API Key</span><input class="setting-inp" id="cfg-ds-key" type="password" value="'+esc(cfg.dsKey||'')+'" placeholder="sk-..."></div>'+
-      '<div class="setting-row"><span class="setting-label">复盘模型</span><select class="setting-inp" id="cfg-ds-review-model" style="cursor:pointer;"><option value="deepseek-v4-pro"'+(( cfg.dsReviewModel||'deepseek-v4-pro')==='deepseek-v4-pro'?' selected':'')+'>deepseek-v4-pro（深度）</option><option value="deepseek-chat"'+((cfg.dsReviewModel||'deepseek-v4-pro')==='deepseek-chat'?' selected':'')+'>deepseek-chat（快速）</option></select></div>'+
+      '<div class="settings-section-title">AI 助手</div>'+
+      '<div class="setting-row"><span class="setting-label">API Key</span><input class="setting-inp" id="cfg-ds-key" type="password" value="'+esc(cfg.dsKey||'')+'" placeholder="请输入 Key"></div>'+
+      '<div class="setting-row"><span class="setting-label">复盘模型</span><select class="setting-inp" id="cfg-ds-review-model" style="cursor:pointer;"><option value="deepseek-v4-pro"'+(( cfg.dsReviewModel||'deepseek-v4-pro')==='deepseek-v4-pro'?' selected':'')+'>深度模式</option><option value="deepseek-chat"'+((cfg.dsReviewModel||'deepseek-v4-pro')==='deepseek-chat'?' selected':'')+'>快速模式</option></select></div>'+
       '<div style="margin-top:8px"><button class="tb-btn primary" onclick="saveAISettings()">保存</button></div>'+
       '<div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.7">Key 仅存本地，不会同步到 GitHub。<br>需配合 localhost 服务使用，否则 CORS 报错。</div>'+
       '<div style="margin-top:12px;background:var(--bg3);border-radius:var(--rxs);padding:10px 12px;font-size:11px;color:var(--text3);line-height:1.8">'+
@@ -2006,7 +2006,7 @@ function saveReview(){
   save();renderPanel();toast('复盘已保存 ✓');
 }
 async function requestReviewAI(){
-  var cfg=getCfg();if(!cfg.dsKey){toast('请先在设置中填写 DeepSeek API Key');return;}
+  var cfg=getCfg();if(!cfg.dsKey){toast('请先在设置中填写 AI Key');return;}
   saveReview();
   var date=S._reviewDate||todayStr();
   var rv=S.reviews.find(function(r){return r.date===date;});
@@ -2295,7 +2295,7 @@ function renderLetterView(){
       '<div style="font-size:30px">📬</div>'+
       '<div>每周一早上自动生成本周信件</div>'+
       '<div style="font-size:12px;color:var(--text4)">坚持使用工作台，AI 会越来越了解你</div>'+
-      (getCfg().dsKey?'<button class="letter-gen-btn" style="margin-top:12px" onclick="generateWeeklyLetter(true)">手动生成本周信件</button>':'<div style="font-size:11px;color:var(--text3)">（请先在设置中填写 DeepSeek API Key）</div>')+
+      (getCfg().dsKey?'<button class="letter-gen-btn" style="margin-top:12px" onclick="generateWeeklyLetter(true)">手动生成本周信件</button>':'<div style="font-size:11px;color:var(--text3)">（请先在设置中填写 AI Key）</div>')+
     '</div>';
   }
   html+='</div>';
@@ -2305,7 +2305,7 @@ function renderLetterView(){
   el.innerHTML=html;
 }
 async function generateWeeklyLetter(force){
-  var cfg=getCfg();if(!cfg.dsKey){toast('请先填写 DeepSeek API Key');return;}
+  var cfg=getCfg();if(!cfg.dsKey){toast('请先填写 AI Key');return;}
   var ws=getWeekStart();
   var existing=S.weeklyLetters.find(function(l){return l.weekStart===ws;});
   if(existing&&!force){toast('本周信件已生成');return;}
@@ -2403,7 +2403,7 @@ async function sendChatMsg(){
   var inp=eid('ai-chat-inp');if(!inp)return;
   var text=inp.value.trim();if(!text)return;
   var cfg=getCfg();
-  if(!cfg.dsKey){toast('请先在设置中填写 DeepSeek API Key');return;}
+  if(!cfg.dsKey){toast('请先在设置中填写 AI Key');return;}
 
   inp.value='';inp.style.height='auto';
   _aiChatMsgs.push({role:'user',content:text});
