@@ -2474,10 +2474,8 @@ function init(){
   // file:// 检测
   if(location.protocol==='file:'){eid('file-warn').classList.add('on');}
 
-  // 服务器检测（仅 localhost 下运行）
-  if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){
-    checkServer();
-  }
+  // 服务器检测（任何访问方式都检测）
+  if(location.protocol!=='file:'){checkServer();}
 
   // render initial state
   navTo('home');
