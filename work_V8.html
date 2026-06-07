@@ -1895,7 +1895,8 @@ function submitInboxPanel(){
 }
 function promoteInboxToNote(id){
   var item=S.inbox.find(function(x){return x.id===id;});if(!item)return;
-  var n={id:uid(),cat:'notes',title:item.title,body:'',created:Date.now(),updated:Date.now()};
+  var _t=item.title||'',_nl=_t.indexOf('\n');
+  var n={id:uid(),cat:'notes',title:_nl>-1?_t.slice(0,_nl).trim():_t,body:_nl>-1?_t.slice(_nl+1).trim():'',created:Date.now(),updated:Date.now()};
   S.notes.unshift(n);
   S.inbox=S.inbox.filter(function(x){return x.id!==id;});
   S.deletedIds.push(id);save();
