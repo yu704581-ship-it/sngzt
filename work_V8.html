@@ -243,6 +243,10 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .lightbox-ov{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;}
 .lightbox-ov img{max-width:92vw;max-height:92vh;border-radius:8px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
 .ne-img-strip{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0 4px;}
+#upload-progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:10001;display:none;}
+#upload-progress-bar{height:100%;background:var(--accent);width:0;transition:width 0.25s;}
+#upload-progress.indeterminate #upload-progress-bar{width:100%;animation:progress-slide 1.2s ease-in-out infinite;}
+@keyframes progress-slide{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
 .ne-img-thumb{position:relative;display:inline-block;}
 .ne-img-thumb img{width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:zoom-in;display:block;}
 .thumb-del{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#e05353;color:#fff;font-size:12px;line-height:18px;text-align:center;cursor:pointer;display:none;user-select:none;}
@@ -634,12 +638,14 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 </div>
 
 <!-- ══ MAIN ══ -->
+<div id="upload-progress"><div id="upload-progress-bar"></div></div>
 <div class="main">
   <div class="topbar" id="topbar">
     <div class="topbar-title" id="tb-title">今日任务</div>
     <div class="topbar-sub" id="tb-sub"></div>
     <div class="topbar-spacer"></div>
     <div class="tb-sync" id="tb-sync" style="display:none"></div>
+    <button id="tb-refresh-btn" onclick="manualSync()" title="主动刷新" style="display:none;background:none;border:none;font-size:15px;cursor:pointer;color:var(--text3);padding:2px 4px;line-height:1;opacity:0.6;transition:opacity 0.15s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">↻</button>
     <div class="seg" id="task-seg">
       <button class="seg-btn active" onclick="setTaskView('list',this)">列表</button>
       <button class="seg-btn" onclick="setTaskView('kanban',this)">看板</button>
@@ -779,7 +785,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════ */
-var VERSION='v3.7';
+var VERSION='v3.8';
 var STATUS_LABELS={todo:'未开始',doing:'进行中',done:'已完成',cancel:'已取消'};
 var PRI_LABELS={normal:'⚪ 普通',important:'🟡 重要',urgent:'🔴 紧急'};
 var PROJ_COLORS=['#4f8ef7','#34c97a','#f5a623','#f25c5c','#af52de','#5856d6','#00c7be','#ff6b6b'];
@@ -908,6 +914,50 @@ function save(){
   if(isConfigured()){clearTimeout(_syncTimer);_syncTimer=setTimeout(ghPush,1500);}
 }
 
+function showProgress(){
+  var p=eid('upload-progress');if(!p)return;
+  p.style.display='block';p.classList.add('indeterminate');
+  eid('upload-progress-bar').style.width='';
+}
+function hideProgress(ok){
+  var p=eid('upload-progress');if(!p)return;
+  p.classList.remove('indeterminate');
+  var bar=eid('upload-progress-bar');
+  bar.style.background=ok===false?'var(--red)':'var(--green)';
+  bar.style.width='100%';
+  setTimeout(function(){p.style.display='none';bar.style.background='var(--accent)';bar.style.width='0';},600);
+}
+
+function ghImgApiUrl(filename){var c=getCfg();return'https://api.github.com/repos/'+c.owner+'/'+c.repo+'/contents/images/'+filename;}
+function ghImgRawUrl(filename){var c=getCfg();return'https://raw.githubusercontent.com/'+c.owner+'/'+c.repo+'/main/images/'+filename;}
+function ghPathFromRawUrl(url){var c=getCfg();var pfx='https://raw.githubusercontent.com/'+c.owner+'/'+c.repo+'/main/';return url.startsWith(pfx)?url.slice(pfx.length):null;}
+
+async function ghUploadImage(dataUrl){
+  if(!isConfigured())return null;
+  var ext=dataUrl.indexOf('image/png')!==-1?'png':'jpg';
+  var filename=uid()+'.'+ext;
+  var base64=dataUrl.split(',')[1];
+  var body={message:'upload image '+filename,content:base64};
+  showProgress();
+  try{
+    var r=await fetch(ghImgApiUrl(filename),{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+    if(!r.ok){hideProgress(false);return null;}
+    hideProgress(true);
+    return ghImgRawUrl(filename);
+  }catch(e){hideProgress(false);return null;}
+}
+
+async function ghDeleteImage(rawUrl){
+  var path=ghPathFromRawUrl(rawUrl);if(!path)return;
+  var c=getCfg();
+  var apiUrl='https://api.github.com/repos/'+c.owner+'/'+c.repo+'/contents/'+path;
+  try{
+    var r=await fetch(apiUrl,{headers:ghHeaders()});if(!r.ok)return;
+    var json=await r.json();
+    await fetch(apiUrl,{method:'DELETE',headers:ghHeaders(),body:JSON.stringify({message:'delete image',sha:json.sha})});
+  }catch(e){}
+}
+
 function ghHeaders(){var c=getCfg();return{'Authorization':'token '+c.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};}
 function ghUrl(){var c=getCfg();return'https://api.github.com/repos/'+c.owner+'/'+c.repo+'/contents/workspace-data-v3.json';}
 
@@ -919,6 +969,7 @@ function syncBarStart(){
   el.className='tb-sync';
   el.innerHTML='<span class="tb-sync-icon">↑</span>同步中…';
   el.onclick=null;
+  var rb=eid('tb-refresh-btn');if(rb)rb.style.display='inline-block';
 }
 function syncBarDone(ok){
   var el=eid('tb-sync');
@@ -936,6 +987,7 @@ function syncBarDone(ok){
     el.className='tb-sync ok';
     el.innerHTML='<span class="tb-sync-icon">✓</span>已保存 · '+t;
     el.onclick=null;
+    toast('已同步到云端 ✓');
     _syncFadeTimer=setTimeout(function(){
       el.className='tb-sync';
       el.innerHTML='<span class="tb-sync-icon">☁</span>'+_lastSyncTime;
@@ -961,7 +1013,7 @@ async function ghPull(){
 
 async function ghPush(){
   if(!isConfigured())return;
-  syncBarStart();
+  syncBarStart();showProgress();
   try{
     var payload={tasks:S.tasks,notes:S.notes,inbox:S.inbox,projects:S.projects,knowledge:S.knowledge,books:S.books,deletedIds:S.deletedIds,reviews:S.reviews,kcards:S.kcards,weeklyLetters:S.weeklyLetters};
     var content=btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2))));
@@ -977,8 +1029,8 @@ async function ghPush(){
       }else{var err=await r.json();throw new Error(err.message||'HTTP '+r.status);}
     }
     var json=await r.json();_ghSha=json.content.sha;
-    syncBarDone(true);
-  }catch(e){syncBarDone(false);}
+    hideProgress(true);syncBarDone(true);
+  }catch(e){hideProgress(false);syncBarDone(false);}
 }
 
 function mergeRemote(remote){
@@ -1877,7 +1929,7 @@ function _addThumbToStrip(strip,src,id){
   var del=document.createElement('span');
   del.className='thumb-del';
   del.textContent='×';
-  del.onclick=function(e){e.stopPropagation();wrap.remove();updateNoteBodyEl(id);};
+  del.onclick=function(e){e.stopPropagation();wrap.remove();updateNoteBodyEl(id);if(src.startsWith('https://raw.githubusercontent.com/'))ghDeleteImage(src);};
   wrap.appendChild(i);wrap.appendChild(del);
   strip.appendChild(wrap);
 }
@@ -1891,17 +1943,35 @@ function _extractNoteImages(id){
     img.remove();
     _addThumbToStrip(strip,src,id);
   });
+  if(isConfigured())_migrateBase64Images(id);
+}
+async function _migrateBase64Images(id){
+  var strip=eid('ne-img-strip-'+id);if(!strip)return;
+  var thumbs=strip.querySelectorAll('.ne-img-thumb img');
+  var needSave=false;
+  for(var i=0;i<thumbs.length;i++){
+    var thumb=thumbs[i];
+    if(!thumb.src.startsWith('data:'))continue;
+    var rawUrl=await ghUploadImage(thumb.src);
+    if(rawUrl){thumb.src=rawUrl;thumb.onclick=(function(u){return function(){openLightbox(u);};})(rawUrl);needSave=true;}
+  }
+  if(needSave)updateNoteBodyEl(id);
 }
 function _compressAndInsertImage(file,id){
-  var MAX=1024*1024;
+  if(!isConfigured()){toast('请先在设置中配置 GitHub 同步再插入图片');return;}
+  var MAX=800*1024;
   var reader=new FileReader();
   reader.onload=function(ev){
-    var strip=eid('ne-img-strip-'+id);
-    if(file.size<=MAX){
-      if(strip)_addThumbToStrip(strip,ev.target.result,id);
-      updateNoteBodyEl(id);
-      return;
+    var dataUrl=ev.target.result;
+    function doUpload(url){
+      ghUploadImage(url).then(function(rawUrl){
+        if(!rawUrl){toast('图片上传失败，请检查 GitHub 配置');return;}
+        var strip=eid('ne-img-strip-'+id);
+        if(strip)_addThumbToStrip(strip,rawUrl,id);
+        updateNoteBodyEl(id);
+      });
     }
+    if(file.size<=MAX){doUpload(dataUrl);return;}
     var img=new Image();
     img.onload=function(){
       var w=img.width,h=img.height;
@@ -1910,15 +1980,15 @@ function _compressAndInsertImage(file,id){
       canvas.width=w;canvas.height=h;
       var ctx=canvas.getContext('2d');
       ctx.drawImage(img,0,0,w,h);
-      var q=0.85;
+      var q=0.8;
       function compress(){
         var data=canvas.toDataURL('image/jpeg',q);
         if((data.length*0.75)>MAX&&q>0.3){q=Math.max(q-0.15,0.3);compress();}
-        else{var s=eid('ne-img-strip-'+id);if(s)_addThumbToStrip(s,data,id);updateNoteBodyEl(id);}
+        else{doUpload(data);}
       }
       compress();
     };
-    img.src=ev.target.result;
+    img.src=dataUrl;
   };
   reader.readAsDataURL(file);
 }
