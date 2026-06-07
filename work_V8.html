@@ -136,6 +136,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .cat-arrow.open{transform:rotate(90deg);}
 .cat-name{flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .cat-count-badge{flex-shrink:0;font-size:10px;color:var(--text3);background:rgba(60,80,140,0.07);padding:1px 7px;border-radius:10px;font-weight:500;}
+.cat-items{display:block;}
 
 /* ══ MANAGER MODAL ══ */
 .mgr-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
@@ -225,7 +226,8 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .ne-titlebar{display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px;flex-shrink:0;}
 .ne-title-inp{flex:1;font-size:22px;font-weight:700;background:transparent;border:none;outline:none;color:var(--text1);}
 .ne-meta{font-size:11px;color:var(--text3);display:flex;gap:12px;margin-bottom:14px;flex-shrink:0;}
-.ne-body{flex:1;background:transparent;border:none;outline:none;resize:none;color:var(--text2);font-size:14px;line-height:1.85;}
+.ne-body{flex:1;background:transparent;border:none;outline:none;color:var(--text2);font-size:14px;line-height:1.85;min-height:400px;word-break:break-word;overflow-y:auto;}
+.ne-body img{max-width:100%;height:auto;border-radius:6px;margin:6px 0;display:block;}
 
 /* ══════════════════════════════════════════
    PROJECT LOG VIEW
@@ -624,7 +626,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════ */
-var VERSION='v3.2';
+var VERSION='v3.3';
 var STATUS_LABELS={todo:'未开始',doing:'进行中',done:'已完成',cancel:'已取消'};
 var PRI_LABELS={normal:'⚪ 普通',important:'🟡 重要',urgent:'🔴 紧急'};
 var PROJ_COLORS=['#4f8ef7','#34c97a','#f5a623','#f25c5c','#af52de','#5856d6','#00c7be','#ff6b6b'];
@@ -1529,7 +1531,7 @@ function renderSettlePanel(el){
       '</div>'+
       '<div class="cat-items" style="'+(isOpen?'':'display:none')+'">'+
       items.map(function(n){
-        return'<div class="note-row'+(S.activeNoteId===n.id?' active':'')+'" data-id="'+n.id+'" data-body="'+esc((n.body||'').slice(0,300))+'" onclick="openNote(\''+n.id+'\')">'+
+        return'<div class="note-row'+(S.activeNoteId===n.id?' active':'')+'" data-id="'+n.id+'" data-body="'+esc((n.body||'').replace(/<[^>]+>/g,'').slice(0,300))+'" onclick="openNote(\''+n.id+'\')">'+
           '<div class="note-dot"></div>'+
           '<div class="note-row-title">'+esc(n.title||'无标题')+'</div>'+
           '<div class="note-row-date">'+fmtDate(n.updated||n.created)+'</div>'+
@@ -1602,7 +1604,7 @@ function openNote(id){
       '<button class="tc-act-btn del" onclick="deleteNote(\''+id+'\')" title="删除笔记" style="margin-left:4px">✕</button>'+
     '</div>'+
     '<div class="ne-meta">'+cat.icon+' '+cat.label+' · '+(n.updated?fmtDate(n.updated):'今天')+'</div>'+
-    '<textarea class="ne-body" style="flex:1;min-height:400px;" oninput="updateNoteBody(\''+id+'\',this.value)">'+esc(n.body||'')+'</textarea>'+
+    '<div class="ne-body" id="ne-body-'+id+'" contenteditable="true" onpaste="handleNotePaste(event,\''+id+'\')" oninput="updateNoteBodyEl(\''+id+'\')">'+_noteBodyHtml(n.body)+'</div>'+
   '</div>';
   showView('view-note');
 
@@ -1622,6 +1624,38 @@ function updateNoteBody(id,val){
   var n=S.notes.find(function(x){return x.id===id;});
   if(!n)return;n.body=val;n.updated=Date.now();
   clearTimeout(n._saveTimer2);n._saveTimer2=setTimeout(function(){save();},1000);
+}
+function _noteBodyHtml(body){
+  if(!body)return '';
+  if(body.indexOf('<img')!==-1||body.indexOf('<br')!==-1)return body;
+  return esc(body).replace(/\n/g,'<br>');
+}
+function updateNoteBodyEl(id){
+  var el=eid('ne-body-'+id);if(!el)return;
+  var n=S.notes.find(function(x){return x.id===id;});if(!n)return;
+  n.body=el.innerHTML;n.updated=Date.now();
+  clearTimeout(n._saveTimer2);n._saveTimer2=setTimeout(function(){save();},800);
+  var cat=NOTE_CATS.find(function(c){return c.id===n.cat;})||{icon:'📝',label:'笔记'};
+  eid('tb-sub').textContent=cat.icon+' '+cat.label+' · '+(fmtDate(n.updated)||'');
+}
+function handleNotePaste(e,id){
+  var items=(e.clipboardData||window.clipboardData||{}).items||[];
+  for(var i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==-1){
+      e.preventDefault();
+      var file=items[i].getAsFile();
+      if(file.size>1024*1024){toast('图片超过 1MB，请压缩后重试 ✕');return;}
+      var reader=new FileReader();
+      (function(r,fid){
+        r.onload=function(ev){
+          document.execCommand('insertImage',false,ev.target.result);
+          updateNoteBodyEl(fid);
+        };
+        r.readAsDataURL(file);
+      })(reader,id);
+      return;
+    }
+  }
 }
 function updateNoteCat(id,cat){
   var n=S.notes.find(function(x){return x.id===id;});
