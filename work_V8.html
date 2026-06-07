@@ -54,6 +54,10 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 .topbar-title{font-size:15px;font-weight:600;}
 .topbar-sub{font-size:12px;color:var(--text3);}
 .topbar-spacer{flex:1;}
+.tb-sync{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);white-space:nowrap;cursor:default;transition:color 0.3s;}
+.tb-sync.ok{color:var(--green);}
+.tb-sync.err{color:var(--red);cursor:pointer;}
+.tb-sync-icon{font-size:13px;}
 .tb-btn{padding:5px 11px;border-radius:var(--rx);border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;transition:all 0.15s;}
 .tb-btn:hover{border-color:var(--border2);color:var(--text1);}
 .tb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
@@ -351,13 +355,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    SYNC STRIP
 ══════════════════════════════════════════ */
-.sync-strip{position:fixed;top:5px;left:0;right:0;height:2px;z-index:200;display:none;border-radius:1px;}
-.sync-strip.active{display:block;}
-.sync-strip-bar{height:100%;background:var(--accent);width:0;transition:width 1.2s ease;border-radius:1px;}
-.sync-strip-label{position:fixed;top:10px;right:10px;font-size:10px;color:var(--text3);z-index:201;pointer-events:none;opacity:0;transition:opacity 0.2s;}
-.sync-strip.active .sync-strip-label{opacity:1;}
-.sync-strip.done .sync-strip-label{opacity:1;}
-.sync-strip.done.fade .sync-strip-label{opacity:0;}
+/* sync strip removed */
 
 /* ══════════════════════════════════════════
    MODAL
@@ -593,9 +591,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
   ✅ 服务器已连接，正在隐藏提示…
 </div>
 
-<!-- SYNC STRIP -->
-<div class="sync-strip" id="sync-strip"><div class="sync-strip-bar" id="sync-bar"></div></div>
-<div class="sync-strip-label" id="sync-label"></div>
+<!-- sync strip removed -->
 
 <!-- ══ NAV ══ -->
 <nav class="nav">
@@ -605,7 +601,6 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
   <button class="nav-btn" id="nav-proj" onclick="navTo('proj')" title="项目日志">⊟</button>
   <div class="nav-spacer"></div>
   <button class="nav-letter" id="nav-letter-btn" onclick="openLetterView()" title="周度信件">📬<div class="nav-letter-dot" id="nav-letter-dot"></div></button>
-  <div class="nav-sync" id="nav-sync-wrap"><div class="nav-sync-dot" id="nav-sync-dot" title="未同步"></div></div>
   <button class="nav-btn" id="nav-settings" onclick="navTo('settings')" title="设置">⚙</button>
 </nav>
 
@@ -629,6 +624,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
     <div class="topbar-title" id="tb-title">今日任务</div>
     <div class="topbar-sub" id="tb-sub"></div>
     <div class="topbar-spacer"></div>
+    <div class="tb-sync" id="tb-sync" style="display:none"></div>
     <div class="seg" id="task-seg">
       <button class="seg-btn active" onclick="setTaskView('list',this)">列表</button>
       <button class="seg-btn" onclick="setTaskView('kanban',this)">看板</button>
@@ -768,7 +764,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════ */
-var VERSION='v3.4A';
+var VERSION='v3.5';
 var STATUS_LABELS={todo:'未开始',doing:'进行中',done:'已完成',cancel:'已取消'};
 var PRI_LABELS={normal:'⚪ 普通',important:'🟡 重要',urgent:'🔴 紧急'};
 var PROJ_COLORS=['#4f8ef7','#34c97a','#f5a623','#f25c5c','#af52de','#5856d6','#00c7be','#ff6b6b'];
@@ -900,28 +896,39 @@ function save(){
 function ghHeaders(){var c=getCfg();return{'Authorization':'token '+c.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};}
 function ghUrl(){var c=getCfg();return'https://api.github.com/repos/'+c.owner+'/'+c.repo+'/contents/workspace-data-v3.json';}
 
+var _lastSyncTime='';
+var _syncFadeTimer=null;
 function syncBarStart(){
-  var strip=eid('sync-strip'),bar=eid('sync-bar'),lbl=eid('sync-label');
-  if(strip){strip.style.display='block';strip.className='sync-strip active';}
-  if(bar){bar.style.background='var(--accent)';bar.style.width='0%';requestAnimationFrame(function(){bar.style.width='80%';});}
-  if(lbl){lbl.style.opacity='1';lbl.textContent='同步中…';}
+  var el=eid('tb-sync');if(!el)return;
+  el.style.display='flex';
+  el.className='tb-sync';
+  el.innerHTML='<span class="tb-sync-icon">↑</span>同步中…';
+  el.onclick=null;
 }
 function syncBarDone(ok){
-  var strip=eid('sync-strip'),bar=eid('sync-bar'),lbl=eid('sync-label');
-  if(bar){bar.style.width='100%';bar.style.background=ok?'var(--green)':'var(--red)';}
-  if(lbl)lbl.textContent=ok?'✓ 已保存':'✕ 同步失败';
-  setTimeout(function(){
-    if(strip){strip.className='sync-strip done fade';setTimeout(function(){strip.style.display='none';bar.style.width='0%';},300);}
-    if(lbl)lbl.style.opacity='0';
-  },1400);
+  var el=eid('tb-sync');
+  var now=new Date();
+  var t=pad(now.getHours())+':'+pad(now.getMinutes());
+  if(ok)_lastSyncTime=t;
   // update settings dot
   var dot=eid('sync-dot'),st=eid('sync-st-text');
   if(dot)dot.className='sync-dot'+(ok?' ok':' err');
   if(st)st.textContent=ok?'已同步':'同步失败';
-  var navDot=eid('nav-sync-dot');
-  if(navDot){
-    navDot.className='nav-sync-dot'+(ok?' ok':' err');
-    var now=new Date();navDot.title=(ok?'已同步':'同步失败')+' '+pad(now.getHours())+':'+pad(now.getMinutes());
+  if(!el)return;
+  el.style.display='flex';
+  clearTimeout(_syncFadeTimer);
+  if(ok){
+    el.className='tb-sync ok';
+    el.innerHTML='<span class="tb-sync-icon">✓</span>已保存 · '+t;
+    el.onclick=null;
+    _syncFadeTimer=setTimeout(function(){
+      el.className='tb-sync';
+      el.innerHTML='<span class="tb-sync-icon">☁</span>'+_lastSyncTime;
+    },3000);
+  } else {
+    el.className='tb-sync err';
+    el.innerHTML='<span class="tb-sync-icon">✕</span>同步失败 · 点击重试';
+    el.onclick=function(){ghPush();};
   }
 }
 
@@ -2896,6 +2903,8 @@ function init(){
 
   // cloud sync
   if(isConfigured()){
+    var el=eid('tb-sync');
+    if(el){el.style.display='flex';el.className='tb-sync';el.innerHTML='<span class="tb-sync-icon">☁</span>加载中…';}
     ghPull().then(function(r){
       if(r===true){renderPanel();renderTaskMain();}
       else if(r==='notfound')ghPush();
