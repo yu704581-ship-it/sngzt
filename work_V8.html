@@ -521,7 +521,8 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 
 <!-- ══ NAV ══ -->
 <nav class="nav">
-  <div class="nav-logo">W</div>
+  <div class="nav-logo" title="工作台">W</div>
+  <div id="nav-version" style="font-size:9px;color:var(--text4);letter-spacing:0.3px;margin-top:-10px;margin-bottom:6px;text-align:center;"></div>
   <button class="nav-btn active" id="nav-home" onclick="navTo('home')" title="今日 / 沉淀">☀</button>
   <button class="nav-btn" id="nav-proj" onclick="navTo('proj')" title="项目日志">⊟</button>
   <div class="nav-spacer"></div>
@@ -620,6 +621,7 @@ input::placeholder,textarea::placeholder{color:var(--text3);}
 /* ══════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════ */
+var VERSION='v3.1';
 var STATUS_LABELS={todo:'未开始',doing:'进行中',done:'已完成',cancel:'已取消'};
 var PRI_LABELS={normal:'⚪ 普通',important:'🟡 重要',urgent:'🔴 紧急'};
 var PROJ_COLORS=['#4f8ef7','#34c97a','#f5a623','#f25c5c','#af52de','#5856d6','#00c7be','#ff6b6b'];
@@ -2464,6 +2466,10 @@ function init(){
   try{var t=JSON.parse(localStorage.getItem('ws_tags'));if(t&&t.length)TAGS=t;}catch(e){}
   // load note cats from old v4 if available
   try{var nc=JSON.parse(localStorage.getItem('ws_note_cats_v2'));if(nc&&nc.length)NOTE_CATS=nc;}catch(e){}
+
+  // 版本号显示
+  document.title='工作台 '+VERSION;
+  var vEl=eid('nav-version');if(vEl)vEl.textContent=VERSION;
 
   // file:// 检测
   if(location.protocol==='file:'){eid('file-warn').classList.add('on');}
